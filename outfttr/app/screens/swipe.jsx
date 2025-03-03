@@ -1,7 +1,7 @@
 
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from "react-native";
-import CardCarousel from "./components/carousel";
+// import CardCarousel from "./components/carousel";
 
 
 
@@ -10,9 +10,6 @@ export default function Swipe() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Pick Today's Outfit</Text>
-      <SafeAreaView style={{ flex: 1 }}>
-    <CardCarousel />
-  </SafeAreaView>
     </View>
   );
 }

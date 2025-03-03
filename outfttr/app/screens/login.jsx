@@ -12,7 +12,7 @@ export default function Login() {
   const handleLogin = () => {
     if (username === 'admin' && password === 'password1') {
       Alert.alert('Login Successful', 'Welcome back!');
-      router.push('/swipe');
+      router.push('/screens/swipe');
     } else {
       Alert.alert('Login Failed', 'Invalid username or password');
     }
@@ -46,7 +46,7 @@ export default function Login() {
 
       <View style={styles.footer}>
         <Text>Don't have an account?</Text>
-        <Button onPress={() => router.push('/signup')} title="Sign up" />
+        <Button onPress={() => router.push('/screens/signup')} title="Sign up" />
       </View>
     </View>
   );

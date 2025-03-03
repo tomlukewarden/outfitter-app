@@ -14,12 +14,12 @@ export default function Home() {
       
       <View style={styles.buttonContainer}>
         <Text style={styles.text}>Already registered with us?</Text>
-        <Button title="Sign In" onPress={() => router.push('/login')} />
+        <Button title="Sign In" onPress={() => router.push('/screens/login')} />
       </View>
 
       <View style={styles.buttonContainer}>
         <Text style={styles.text}>New to OutFittr?</Text>
-        <Button title="Sign Up" onPress={() => router.push('/signup')} />
+        <Button title="Sign Up" onPress={() => router.push('/screens/signup')} />
       </View>
     </View>
   );
