@@ -10,7 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    if (username === 'admin' && password === 'password1') {
+    if (username === 'Admin' && password === 'Password1') {
       Alert.alert('Login Successful', 'Welcome back!');
       router.push('/screens/swipe');
     } else {

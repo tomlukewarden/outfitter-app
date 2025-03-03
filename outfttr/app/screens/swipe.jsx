@@ -1,49 +1,37 @@
+import React from "react";
+import { StyleSheet, Text, View, SafeAreaView } from "react-native";
 
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from "react-native";
-// import CardCarousel from "./components/carousel";
+import Carousel from "./components/cardCarousel";
 
-
+const data = [
+    { id: "1", title: "Outfit 1" },
+    { id: "2", title: "Outfit 2" },
+    { id: "3", title: "Outfit 3" },
+    { id: "4", title: "Outfit 4" },
+];
 
 export default function Swipe() {
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Pick Today's Outfit</Text>
-    </View>
-  );
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>Pick Today's Outfit</Text>
+            <SafeAreaView>
+                <Carousel data={data} />
+            </SafeAreaView>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24, 
-    fontWeight: 'bold',
-    marginBottom: 20, 
-  },
-  item: {
-    width: 250,
-    height: 150,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  itemText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
+    container: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: "bold",
+        marginBottom: 20,
+    },
 });
 
