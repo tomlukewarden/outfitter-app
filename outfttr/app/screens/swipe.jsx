@@ -51,13 +51,16 @@ export default function Swipe() {
       {/* Bottom Menu */}
       <View style={styles.menu}>
         <Pressable onPress={() => router.push('/screens/profile')} style={styles.menuItem}>
-          <Text style={styles.menuText}>Profile</Text>
+          <Text style={styles.menuText}>👤</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/screens/heart')} style={styles.menuItem}>
           <Text style={styles.menuText}>❤️</Text>
         </Pressable>
-        <Pressable onPress={() => router.push('/screens/shuffle')} style={styles.menuItem}>
-          <Text style={styles.menuText}>🔀</Text>
+        <Pressable onPress={() => router.push('/screens/settings')} style={styles.menuItem}>
+          <Text style={styles.menuText}>⚙️</Text>
+        </Pressable>
+        <Pressable onPress={() => router.push('/screens/components/wardrobe')} style={styles.menuItem}>
+          <Text style={styles.menuText}>👔</Text>
         </Pressable>
       </View>
     </View>
