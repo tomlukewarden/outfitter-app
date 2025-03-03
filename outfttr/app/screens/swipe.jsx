@@ -1,5 +1,6 @@
 import React from "react";
-import { StyleSheet, Text, View, SafeAreaView } from "react-native";
+import { StyleSheet, Text, View, SafeAreaView, Pressable } from "react-native";
+import { useRouter } from "expo-router";
 
 import Carousel from "./components/cardCarousel";
 
@@ -35,6 +36,7 @@ const groupedData = data.reduce((acc, item) => {
 }, {}); 
 
 export default function Swipe() {
+  const router = useRouter();
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Pick Today's Outfit</Text>
@@ -48,9 +50,15 @@ export default function Swipe() {
 
       {/* Bottom Menu */}
       <View style={styles.menu}>
-        <Text style={styles.menuItem}>Profile</Text>
-        <Text style={styles.menuItem}>❤️</Text>
-        <Text style={styles.menuItem}>🔀</Text>
+        <Pressable onPress={() => router.push('/screens/profile')} style={styles.menuItem}>
+          <Text style={styles.menuText}>Profile</Text>
+        </Pressable>
+        <Pressable onPress={() => router.push('/screens/heart')} style={styles.menuItem}>
+          <Text style={styles.menuText}>❤️</Text>
+        </Pressable>
+        <Pressable onPress={() => router.push('/screens/shuffle')} style={styles.menuItem}>
+          <Text style={styles.menuText}>🔀</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -85,6 +93,9 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   menuItem: {
+    padding: 10,
+  },
+  menuText: {
     fontSize: 16,
     fontWeight: "bold",
   },
