@@ -1,21 +1,44 @@
 import React, { useState } from 'react';
-import { View, Text, Button, Image, StyleSheet, FlatList, TouchableOpacity, Modal, TouchableHighlight } from 'react-native';
+import { View, Text, Button, Image, StyleSheet, FlatList, Pressable, Modal, TouchableHighlight, Alert, Platform } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 
 const Wardrobe = () => {
   const [wardrobe, setWardrobe] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [newItemType, setNewItemType] = useState('');
   const [newItemImage, setNewItemImage] = useState(null);
-  
-  const handleAddItem = (source) => {
-    source === 'camera' ? launchCamera(options, handleResponse) : launchImageLibrary(options, handleResponse);
-  };
 
   const options = {
     mediaType: 'photo',
     includeBase64: false,
     quality: 0.5,
+  };
+
+  const requestCameraPermission = async () => {
+    const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.CAMERA : PERMISSIONS.ANDROID.CAMERA;
+    const result = await request(permission);
+    return result === RESULTS.GRANTED;
+  };
+
+  const requestGalleryPermission = async () => {
+    const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.PHOTO_LIBRARY : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+    const result = await request(permission);
+    return result === RESULTS.GRANTED;
+  };
+
+  const handleAddItem = async (source) => {
+    let hasPermission = false;
+    if (source === 'camera') {
+      hasPermission = await requestCameraPermission();
+      if (hasPermission) launchCamera(options, handleResponse);
+    } else {
+      hasPermission = await requestGalleryPermission();
+      if (hasPermission) launchImageLibrary(options, handleResponse);
+    }
+
+    if (!hasPermission) {
+      Alert.alert('Permission Denied', `You need to grant permission to access your ${source === 'camera' ? 'camera' : 'gallery'}.`);
+    }
   };
 
   const handleResponse = (response) => {
@@ -31,13 +54,17 @@ const Wardrobe = () => {
 
   const handleTypeSelection = (type) => {
     const newItem = {
-      id: wardrobe.length + 1,
+      id: Date.now(),
       title: `Clothing Item ${wardrobe.length + 1}`,
       imageUri: newItemImage,
       type: type,
     };
-    setWardrobe([...wardrobe, newItem]);  
-    setModalVisible(false); 
+    setWardrobe([...wardrobe, newItem]);
+    setModalVisible(false);
+  };
+
+  const handleDeleteItem = (id) => {
+    setWardrobe(wardrobe.filter(item => item.id !== id));
   };
 
   return (
@@ -56,16 +83,15 @@ const Wardrobe = () => {
           <View style={styles.itemContainer}>
             <Image source={{ uri: item.imageUri }} style={styles.image} />
             <Text>{item.title}</Text>
-            <Text>{item.type}</Text> 
+            <Text>{item.type}</Text>
+            <Pressable onPress={() => handleDeleteItem(item.id)} style={styles.deleteButton}>
+              <Text style={styles.deleteText}>X</Text>
+            </Pressable>
           </View>
         )}
       />
 
-      <Modal
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+      <Modal transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Select Item Type</Text>
@@ -95,21 +121,34 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 20,
-  },
   itemContainer: {
     alignItems: 'center',
     marginBottom: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '90%',
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
   },
   image: {
     width: 100,
     height: 100,
     borderRadius: 10,
-    marginBottom: 10,
+    marginRight: 10,
+  },
+  deleteButton: {
+    backgroundColor: 'red',
+    padding: 5,
+    borderRadius: 5,
+  },
+  deleteText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   modalOverlay: {
     flex: 1,

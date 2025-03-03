@@ -11,7 +11,7 @@ export default function Profile() {
       <Text style={styles.name}>John Doe</Text>
       <Text style={styles.bio}>Software Developer | Fashion Enthusiast | Tech Lover</Text>
       
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/edit-profile')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/screens/edit-profile')}>
         <Text style={styles.buttonText}>Edit Profile</Text>
       </TouchableOpacity>
 
