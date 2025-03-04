@@ -1,81 +1,61 @@
-import React, { useState } from 'react';
-import { View, Text, Button, Image, StyleSheet, FlatList, Pressable, Modal, TouchableHighlight, Alert, Platform } from 'react-native';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Button, Image, StyleSheet, FlatList, Pressable, Modal, TouchableHighlight, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 const Wardrobe = () => {
   const [wardrobe, setWardrobe] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newItemImage, setNewItemImage] = useState(null);
 
-  const options = {
-    mediaType: 'photo',
-    includeBase64: false,
-    quality: 0.5,
-  };
-
-  const requestCameraPermission = async () => {
-    const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.CAMERA : PERMISSIONS.ANDROID.CAMERA;
-    const result = await request(permission);
-    return result === RESULTS.GRANTED;
-  };
-
-  const requestGalleryPermission = async () => {
-    const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.PHOTO_LIBRARY : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
-    const result = await request(permission);
-    return result === RESULTS.GRANTED;
-  };
+  useEffect(() => {
+    (async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Camera access is needed to add items.');
+      }
+    })();
+  }, []);
 
   const handleAddItem = async (source) => {
-    let hasPermission = false;
+    let result;
     if (source === 'camera') {
-      hasPermission = await requestCameraPermission();
-      if (hasPermission) launchCamera(options, handleResponse);
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'You need to grant camera permission.');
+        return;
+      }
+      result = await ImagePicker.launchCameraAsync({ quality: 0.5 });
     } else {
-      hasPermission = await requestGalleryPermission();
-      if (hasPermission) launchImageLibrary(options, handleResponse);
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'You need to grant gallery permission.');
+        return;
+      }
+      result = await ImagePicker.launchImageLibraryAsync({ quality: 0.5 });
     }
 
-    if (!hasPermission) {
-      Alert.alert('Permission Denied', `You need to grant permission to access your ${source === 'camera' ? 'camera' : 'gallery'}.`);
-    }
-  };
-
-  const handleResponse = (response) => {
-    if (response.didCancel) {
-      console.log('User cancelled image picker');
-    } else if (response.errorCode) {
-      console.log('Image Picker Error: ', response.errorMessage);
-    } else {
-      setNewItemImage(response.assets[0].uri); // Store the image URI temporarily
-      setModalVisible(true); // Show the modal to choose the type
+    if (!result.canceled) {
+      setNewItemImage(result.assets[0].uri);
+      setModalVisible(true);
     }
   };
 
   const handleTypeSelection = (type) => {
-    const newItem = {
-      id: Date.now(),
-      title: `Clothing Item ${wardrobe.length + 1}`,
-      imageUri: newItemImage,
-      type: type,
-    };
-    setWardrobe([...wardrobe, newItem]);
+    setWardrobe([...wardrobe, { id: Date.now(), title: `Item ${wardrobe.length + 1}`, imageUri: newItemImage, type }]);
     setModalVisible(false);
   };
 
   const handleDeleteItem = (id) => {
-    setWardrobe(wardrobe.filter(item => item.id !== id));
+    setWardrobe(wardrobe.filter((item) => item.id !== id));
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Wardrobe</Text>
-
       <View style={styles.buttonContainer}>
         <Button title="Add New Item (Camera)" onPress={() => handleAddItem('camera')} />
         <Button title="Add New Item (Gallery)" onPress={() => handleAddItem('gallery')} />
       </View>
-
       <FlatList
         data={wardrobe}
         keyExtractor={(item) => item.id.toString()}
@@ -90,7 +70,6 @@ const Wardrobe = () => {
           </View>
         )}
       />
-
       <Modal transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
@@ -109,70 +88,16 @@ const Wardrobe = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#f8f8f8',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  itemContainer: {
-    alignItems: 'center',
-    marginBottom: 15,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '90%',
-    padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-    marginRight: 10,
-  },
-  deleteButton: {
-    backgroundColor: 'red',
-    padding: 5,
-    borderRadius: 5,
-  },
-  deleteText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    width: 300,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  modalOption: {
-    fontSize: 16,
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, backgroundColor: '#f8f8f8' },
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+  itemContainer: { alignItems: 'center', marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', width: '90%', padding: 10, backgroundColor: '#fff', borderRadius: 10, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 },
+  image: { width: 100, height: 100, borderRadius: 10, marginRight: 10 },
+  deleteButton: { backgroundColor: 'red', padding: 5, borderRadius: 5 },
+  deleteText: { color: 'white', fontWeight: 'bold' },
+  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+  modalContainer: { backgroundColor: 'white', padding: 20, borderRadius: 10, width: 300 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
+  modalOption: { fontSize: 16, padding: 10, borderBottomWidth: 1, borderBottomColor: '#ddd' },
 });
 
 export default Wardrobe;
