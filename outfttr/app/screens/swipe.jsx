@@ -1,51 +1,62 @@
-import React from "react";
-import { StyleSheet, Text, View, SafeAreaView, Pressable } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, Text, View, SafeAreaView, Pressable, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-
 import Carousel from "./components/cardCarousel";
-
-const data = [
-  { id: "1", title: "Beanie", type: "headwear" },
-  { id: "2", title: "Baseball Cap", type: "headwear" },
-  { id: "3", title: "Leather Jacket", type: "tops" },
-  { id: "4", title: "Hoodie", type: "tops" },
-  { id: "5", title: "Graphic T-Shirt", type: "tops" },
-  { id: "6", title: "Denim Jeans", type: "bottoms" },
-  { id: "7", title: "Chinos", type: "bottoms" },
-  { id: "8", title: "Joggers", type: "bottoms" },
-  { id: "9", title: "Sneakers", type: "shoes" },
-  { id: "10", title: "Chelsea Boots", type: "shoes" },
-  { id: "11", title: "Running Shoes", type: "shoes" },
-  { id: "12", title: "Wristwatch", type: "accessories" },
-  { id: "13", title: "Sunglasses", type: "accessories" },
-  { id: "14", title: "Leather Belt", type: "accessories" },
-  { id: "15", title: "Snapback Hat", type: "headwear" },
-  { id: "16", title: "Cardigan", type: "tops" },
-  { id: "17", title: "Cargo Pants", type: "bottoms" },
-  { id: "18", title: "Loafers", type: "shoes" },
-  { id: "19", title: "Bracelet", type: "accessories" },
-  { id: "20", title: "Bucket Hat", type: "headwear" },
-];
-
-const groupedData = data.reduce((acc, item) => {
-  if (!acc[item.type]) {
-    acc[item.type] = [];
-  }
-  acc[item.type].push(item);
-  return acc;
-}, {}); 
+import { getWardrobe } from "./utility/storage";
 
 export default function Swipe() {
   const router = useRouter();
+  const [groupedData, setGroupedData] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWardrobe = async () => {
+      try {
+        const wardrobe = await getWardrobe();
+        console.log("Fetched wardrobe data:", wardrobe);
+
+        // Group wardrobe items by type
+        const grouped = wardrobe.reduce((acc, item) => {
+          if (!item.type || !item.imageUri) {
+            console.error("Item missing 'type' or 'imageUri':", item);
+            return acc;
+          }
+          if (!acc[item.type]) {
+            acc[item.type] = [];
+          }
+          acc[item.type].push(item);
+          return acc;
+        }, {});
+
+        console.log("Grouped wardrobe data:", grouped); 
+        setGroupedData(grouped);
+      } catch (error) {
+        console.error("Error fetching wardrobe:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWardrobe();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Pick Today's Outfit</Text>
       <SafeAreaView style={styles.carouselContainer}>
-        <Carousel data={groupedData["headwear"]} />
-        <Carousel data={groupedData["tops"]} />
-        <Carousel data={groupedData["bottoms"]} />
-        <Carousel data={groupedData["shoes"]} />
-        <Carousel data={groupedData["accessories"]} />
+        {groupedData["headwear"] && <Carousel data={groupedData["headwear"]} />}
+        {groupedData["tops"] && <Carousel data={groupedData["tops"]} />}
+        {groupedData["bottoms"] && <Carousel data={groupedData["bottoms"]} />}
+        {groupedData["shoes"] && <Carousel data={groupedData["shoes"]} />}
+        {groupedData["accessories"] && <Carousel data={groupedData["accessories"]} />}
       </SafeAreaView>
 
       {/* Bottom Menu */}
