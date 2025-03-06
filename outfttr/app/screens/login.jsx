@@ -7,10 +7,11 @@ import { Colors } from '../../constants/Colors';
 export default function Login() {
   const router = useRouter();
   const colorScheme = useColorScheme(); 
-  const theme = Colors[colorScheme] || Colors.light;
+  const theme = colorScheme === 'dark' ? Colors.dark : Colors.ocean;
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+
 
   const handleLogin = () => {
     if (username === 'Admin' && password === 'Password1') {
