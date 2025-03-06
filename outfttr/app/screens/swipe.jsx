@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, SafeAreaView, Pressable, ActivityIndicator } from "react-native";
+import { 
+  StyleSheet, Text, View, SafeAreaView, Pressable, ActivityIndicator, useColorScheme 
+} from "react-native";
 import { useRouter } from "expo-router";
 import Carousel from "./components/cardCarousel";
 import { getWardrobe } from "./utility/storage";
+import { Colors } from "../../constants/Colors";
 
 export default function Swipe() {
   const router = useRouter();
+  const colorScheme = useColorScheme() || "light"; 
+  const theme = Colors[colorScheme];
+
   const [groupedData, setGroupedData] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -42,15 +48,15 @@ export default function Swipe() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.tint} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Pick Today's Outfit</Text>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <Text style={[styles.title, { color: theme.text }]}>Pick Today's Outfit</Text>
       <SafeAreaView style={styles.carouselContainer}>
         {groupedData["headwear"] && <Carousel data={groupedData["headwear"]} />}
         {groupedData["tops"] && <Carousel data={groupedData["tops"]} />}
@@ -60,18 +66,18 @@ export default function Swipe() {
       </SafeAreaView>
 
       {/* Bottom Menu */}
-      <View style={styles.menu}>
+      <View style={[styles.menu, { backgroundColor: theme.tint, borderColor: theme.icon }]}>
         <Pressable onPress={() => router.push('/screens/profile')} style={styles.menuItem}>
-          <Text style={styles.menuText}>👤</Text>
+          <Text style={[styles.menuText, { color: theme.background }]}>👤</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/screens/heart')} style={styles.menuItem}>
-          <Text style={styles.menuText}>❤️</Text>
+          <Text style={[styles.menuText, { color: theme.background }]}>❤️</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/screens/settings')} style={styles.menuItem}>
-          <Text style={styles.menuText}>⚙️</Text>
+          <Text style={[styles.menuText, { color: theme.background }]}>⚙️</Text>
         </Pressable>
         <Pressable onPress={() => router.push('/screens/components/wardrobe')} style={styles.menuItem}>
-          <Text style={styles.menuText}>👔</Text>
+          <Text style={[styles.menuText, { color: theme.background }]}>👔</Text>
         </Pressable>
       </View>
     </View>
@@ -84,7 +90,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 10,
-    backgroundColor: "#f8f8f8",
   },
   title: {
     fontSize: 18, 
@@ -101,10 +106,8 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: "#fff",
     paddingVertical: 15,
     borderTopWidth: 1,
-    borderColor: "#ddd",
   },
   menuItem: {
     padding: 10,
