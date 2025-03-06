@@ -12,7 +12,7 @@ import {
   Alert,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { saveWardrobe, loadWardrobe } from "../utility/storage";
+import { saveWardrobe, getWardrobe } from "../utility/storage";
 
 const Wardrobe = () => {
   const [wardrobe, setWardrobe] = useState([]);
@@ -21,7 +21,7 @@ const Wardrobe = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const storedWardrobe = await loadWardrobe();
+      const storedWardrobe = await getWardrobe();
       setWardrobe(storedWardrobe);
     };
     fetchData();

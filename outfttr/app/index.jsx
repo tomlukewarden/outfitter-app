@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
   },
   circle: {
     position: 'absolute',
-    width: 120,
-    height: 120,
+    width: 140,
+    height: 140,
     borderRadius: 60,
     backgroundColor: 'rgba(0, 122, 255, 0.15)',
   },

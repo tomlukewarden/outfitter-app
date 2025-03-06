@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { 
-  StyleSheet, Text, View, SafeAreaView, Pressable, ActivityIndicator, useColorScheme 
+  StyleSheet, Text, Image, View, SafeAreaView, Pressable, ActivityIndicator, useColorScheme 
 } from "react-native";
 import { useRouter } from "expo-router";
 import Carousel from "./components/cardCarousel";
@@ -68,16 +68,16 @@ export default function Swipe() {
       {/* Bottom Menu */}
       <View style={[styles.menu, { backgroundColor: theme.tint, borderColor: theme.icon }]}>
         <Pressable onPress={() => router.push('/screens/profile')} style={styles.menuItem}>
-          <Text style={[styles.menuText, { color: theme.background }]}>👤</Text>
+          <Image size={30} source={require('./assets/user.png')} style={[styles.menuIcon, { color: theme.background }]}></Image>
         </Pressable>
         <Pressable onPress={() => router.push('/screens/heart')} style={styles.menuItem}>
-          <Text style={[styles.menuText, { color: theme.background }]}>❤️</Text>
+        <Image size={30}  source={require('./assets/heart.png')} style={[styles.menuIcon, { color: theme.background }]}></Image>
         </Pressable>
         <Pressable onPress={() => router.push('/screens/settings')} style={styles.menuItem}>
-          <Text style={[styles.menuText, { color: theme.background }]}>⚙️</Text>
+        <Image size={30} source={require('./assets/settings.png')} style={[styles.menuIcon, { color: theme.background }]}></Image>
         </Pressable>
         <Pressable onPress={() => router.push('/screens/components/wardrobe')} style={styles.menuItem}>
-          <Text style={[styles.menuText, { color: theme.background }]}>👔</Text>
+        <Image size={30} source={require('./assets/clothes-hanger.png')} style={[styles.menuIcon, { color: theme.background }]}></Image>
         </Pressable>
       </View>
     </View>
@@ -112,8 +112,9 @@ const styles = StyleSheet.create({
   menuItem: {
     padding: 10,
   },
-  menuText: {
-    fontSize: 16,
-    fontWeight: "bold",
+  menuIcon: {
+    width: 30,
+    height: 30,
   },
+  
 });
