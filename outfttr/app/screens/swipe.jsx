@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
-  StyleSheet, Text, Image, View, SafeAreaView, Pressable, ActivityIndicator, useColorScheme 
+  StyleSheet, Text, Image, View, SafeAreaView, Pressable, ActivityIndicator 
 } from "react-native";
 import { useRouter } from "expo-router";
 import Carousel from "./components/cardCarousel";
 import { getWardrobe } from "./utility/storage";
-import { Colors } from "../../constants/Colors";
+import { ThemeContext } from "./utility/themeContext";
 
 export default function Swipe() {
   const router = useRouter();
-  const colorScheme = useColorScheme() || "light"; 
-  const theme = Colors[colorScheme];
-
+  const { themeColors } = useContext(ThemeContext);
   const [groupedData, setGroupedData] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -23,7 +21,7 @@ export default function Swipe() {
 
         // Group wardrobe items by type
         const grouped = wardrobe.reduce((acc, item) => {
-          if (!item.type && !item.imageUri) {
+          if (!item.type || !item.imageUri) {
             console.error("Item missing 'type' or 'imageUri':", item);
             return acc;
           }
@@ -48,17 +46,17 @@ export default function Swipe() {
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.background }]}>
-        <ActivityIndicator size="large" color={theme.tint} />
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+        <ActivityIndicator size="large" color={themeColors.tint} />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={[styles.title, { color: theme.text }]}>Pick Today's Outfit</Text>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <Text style={[styles.title, { color: themeColors.text }]}>Pick Today's Outfit</Text>
       <SafeAreaView style={styles.carouselContainer}>
-      {groupedData["Headwear"] && <Carousel data={groupedData["Headwear"]} />}
+        {groupedData["Headwear"] && <Carousel data={groupedData["Headwear"]} />}
         {groupedData["Tops"] && <Carousel data={groupedData["Tops"]} />}
         {groupedData["Bottoms"] && <Carousel data={groupedData["Bottoms"]} />}
         {groupedData["Shoes"] && <Carousel data={groupedData["Shoes"]} />}
@@ -66,18 +64,18 @@ export default function Swipe() {
       </SafeAreaView>
 
       {/* Bottom Menu */}
-      <View style={[styles.menu, { backgroundColor: theme.tint, borderColor: theme.icon }]}>
+      <View style={[styles.menu, { backgroundColor: themeColors.tint, borderColor: themeColors.icon }]}>
         <Pressable onPress={() => router.push('/screens/profile')} style={styles.menuItem}>
-          <Image size={30} source={require('./assets/user.png')} style={[styles.menuIcon, { color: theme.background }]}></Image>
+          <Image size={30} source={require('./assets/user.png')} style={styles.menuIcon} />
         </Pressable>
         <Pressable onPress={() => router.push('/screens/heart')} style={styles.menuItem}>
-        <Image size={30}  source={require('./assets/heart.png')} style={[styles.menuIcon, { color: theme.background }]}></Image>
+          <Image size={30} source={require('./assets/heart.png')} style={styles.menuIcon} />
         </Pressable>
         <Pressable onPress={() => router.push('/screens/components/settings')} style={styles.menuItem}>
-        <Image size={30} source={require('./assets/settings.png')} style={[styles.menuIcon, { color: theme.background }]}></Image>
+          <Image size={30} source={require('./assets/settings.png')} style={styles.menuIcon} />
         </Pressable>
         <Pressable onPress={() => router.push('/screens/components/wardrobe')} style={styles.menuItem}>
-        <Image size={30} source={require('./assets/clothes-hanger.png')} style={[styles.menuIcon, { color: theme.background }]}></Image>
+          <Image size={30} source={require('./assets/clothes-hanger.png')} style={styles.menuIcon} />
         </Pressable>
       </View>
     </View>
@@ -116,5 +114,5 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
   },
-  
 });
+

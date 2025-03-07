@@ -1,5 +1,5 @@
 import * as MediaLibrary from "expo-media-library";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -14,11 +14,13 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { saveWardrobe, getWardrobe } from "../utility/storage";
+import { ThemeContext } from "../utility/themeContext";
 
 const Wardrobe = () => {
   const [wardrobe, setWardrobe] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newItemImage, setNewItemImage] = useState(null);
+  const { themeColors } = useContext(ThemeContext); // Use theme context
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,9 +50,7 @@ const Wardrobe = () => {
   
     if (!result.canceled) {
       const asset = await MediaLibrary.createAssetAsync(result.assets[0].uri);
-      console.log("Saved to media library:", asset.uri);
-  
-      setNewItemImage(asset.uri);  // Save permanent URI instead of temp
+      setNewItemImage(asset.uri);
       setModalVisible(true);
     }
   };
@@ -75,8 +75,8 @@ const Wardrobe = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>My Wardrobe</Text>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <Text style={[styles.title, { color: themeColors.text }]}>My Wardrobe</Text>
       <View style={styles.buttonContainer}>
         <Button title="Add New Item (Camera)" onPress={() => handleAddItem("camera")} />
         <Button title="Add New Item (Gallery)" onPress={() => handleAddItem("gallery")} />
@@ -85,10 +85,10 @@ const Wardrobe = () => {
         data={wardrobe}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
+          <View style={[styles.itemContainer, { backgroundColor: themeColors.card }]}>
             <Image source={{ uri: item.imageUri }} style={styles.image} />
-            <Text>{item.title}</Text>
-            <Text>{item.type}</Text>
+            <Text style={[styles.itemText, { color: themeColors.text }]}>{item.title}</Text>
+            <Text style={[styles.itemText, { color: themeColors.text }]}>{item.type}</Text>
             <Pressable onPress={() => handleDeleteItem(item.id)} style={styles.deleteButton}>
               <Text style={styles.deleteText}>X</Text>
             </Pressable>
@@ -97,11 +97,11 @@ const Wardrobe = () => {
       />
       <Modal transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Select Item Type</Text>
+          <View style={[styles.modalContainer, { backgroundColor: themeColors.card }]}>
+            <Text style={[styles.modalTitle, { color: themeColors.text }]}>Select Item Type</Text>
             {["Headwear", "Tops", "Bottoms", "Shoes", "Accessories"].map((type) => (
               <TouchableHighlight key={type} onPress={() => handleTypeSelection(type)}>
-                <Text style={styles.modalOption}>{type}</Text>
+                <Text style={[styles.modalOption, { color: themeColors.text }]}>{type}</Text>
               </TouchableHighlight>
             ))}
             <Button title="Cancel" onPress={() => setModalVisible(false)} />
@@ -113,17 +113,29 @@ const Wardrobe = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, backgroundColor: '#f8f8f8' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-  itemContainer: { alignItems: 'center', marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', width: '90%', padding: 10, backgroundColor: '#fff', borderRadius: 10, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 },
+  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
+  buttonContainer: { flexDirection: "row", justifyContent: "space-around", width: "100%", marginBottom: 20 },
+  itemContainer: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "space-between", 
+    width: "90%", 
+    padding: 10, 
+    borderRadius: 10, 
+    shadowColor: "#000", 
+    shadowOpacity: 0.1, 
+    shadowRadius: 5, 
+    elevation: 3 
+  },
   image: { width: 100, height: 100, borderRadius: 10, marginRight: 10 },
-  deleteButton: { backgroundColor: 'red', padding: 5, borderRadius: 5 },
-  deleteText: { color: 'white', fontWeight: 'bold' },
-  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
-  modalContainer: { backgroundColor: 'white', padding: 20, borderRadius: 10, width: 300 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
-  modalOption: { fontSize: 16, padding: 10, borderBottomWidth: 1, borderBottomColor: '#ddd' },
+  itemText: { fontSize: 16 },
+  deleteButton: { backgroundColor: "red", padding: 5, borderRadius: 5 },
+  deleteText: { color: "white", fontWeight: "bold" },
+  modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.5)" },
+  modalContainer: { padding: 20, borderRadius: 10, width: 300 },
+  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 15 },
+  modalOption: { fontSize: 16, padding: 10, borderBottomWidth: 1, borderBottomColor: "#ddd" },
 });
-
 
 export default Wardrobe;

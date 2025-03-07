@@ -1,61 +1,41 @@
-import { useState } from 'react';
-import { 
-  StyleSheet, TextInput, TouchableOpacity, Alert, useColorScheme 
-} from 'react-native';
-import { Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Image, TouchableOpacity, View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Colors } from '../../constants/Colors'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Colors } from '../../constants/Colors';
 
-export default function Signup() {
+export default function Profile() {
   const router = useRouter();
-  const colorScheme = useColorScheme() || 'light'; 
-  const theme = Colors[colorScheme];
+  const [theme, setTheme] = useState(Colors.light);
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-
-  const handleSignup = () => {
-    if (username.trim() === '' || password.trim() === '') {
-      Alert.alert('Error', 'Please enter both a username and password');
-      return;
-    }
-
-    Alert.alert('Registration Successful', 'You can now sign in!');
-    router.push('/login'); 
-  };
+  useEffect(() => {
+    const loadTheme = async () => {
+      const storedTheme = await AsyncStorage.getItem('theme');
+      if (storedTheme && Colors[storedTheme]) {
+        setTheme(Colors[storedTheme]);
+      }
+    };
+    loadTheme();
+  }, []);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={[styles.logo, { color: theme.text }]}>OUTFTTR</Text>
-      <Text style={[styles.welcome, { color: theme.subText }]}>Welcome to OutFittr</Text>
-      <Text style={[styles.header, { color: theme.text }]}>Sign Up</Text>
-
-      <TextInput
-        style={[styles.input, { backgroundColor: theme.inputBackground, color: theme.text, borderColor: theme.border }]}
-        placeholder="Username"
-        placeholderTextColor={theme.placeholder}
-        value={username}
-        onChangeText={setUsername}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={[styles.input, { backgroundColor: theme.inputBackground, color: theme.text, borderColor: theme.border }]}
-        placeholder="Password"
-        placeholderTextColor={theme.placeholder}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      <TouchableOpacity style={[styles.button, { backgroundColor: theme.button }]} onPress={handleSignup}>
-        <Text style={[styles.buttonText, { color: theme.buttonText }]}>Register</Text>
+      <Image source={{ uri: 'https://via.placeholder.com/100' }} style={[styles.profileImage, { borderColor: theme.tint }]} />
+      <Text style={[styles.name, { color: theme.text }]}>John Doe</Text>
+      <Text style={[styles.bio, { color: theme.text }]}>Software Developer | Fashion Enthusiast | Tech Lover</Text>
+      
+      <TouchableOpacity style={[styles.button, { backgroundColor: theme.tint }]} onPress={() => router.push('/screens/edit-profile')}>
+        <Text style={[styles.buttonText, { color: theme.background }]}>Edit Profile</Text>
       </TouchableOpacity>
 
-      {/* Navigate to Login */}
-      <Text style={[styles.footer, { color: theme.subText }]}>
-        Already have an account?  
-        <Text style={[styles.footerLink, { color: theme.link }]} onPress={() => router.push('/login')}> Sign In</Text>
-      </Text>
+      <View style={[styles.container2, { borderColor: theme.icon }]}>
+        <Text style={[styles.title, { color: theme.text }]}>My Saved Outfits</Text>
+        <View style={styles.savedOutfits}>
+          {['Outfit 1', 'Outfit 2', 'Outfit 3', 'Outfit 4', 'Outfit 5', 'Outfit 6'].map((outfit, index) => (
+            <Text key={index} style={[styles.saved, { borderColor: theme.icon, color: theme.text }]}> {outfit} </Text>
+          ))}
+        </View>
+      </View>
     </View>
   );
 }
@@ -67,46 +47,58 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
-  logo: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  welcome: {
-    fontSize: 20,
-    fontWeight: '600',
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderWidth: 2,
+    borderRadius: 50,
     marginBottom: 10,
   },
-  header: {
-    fontSize: 18,
+  name: {
+    fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  bio: {
+    fontSize: 16,
+    textAlign: 'center',
     marginBottom: 20,
   },
-  input: {
-    width: '100%',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 15,
-    fontSize: 16,
-  },
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    width: '100%',
-    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
   },
   buttonText: {
     fontSize: 16,
     fontWeight: 'bold',
   },
-  footer: {
-    fontSize: 14,
-    marginTop: 20,
+  container2: {
+    borderWidth: 2,
+    borderRadius: 5,
+    padding: 10,
+    marginTop: 10,
+    width: '90%',
+    height: '50%',
   },
-  footerLink: {
-    textDecorationLine: 'underline',
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    borderRadius: 20,
+  },
+  savedOutfits: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  saved: {
+    fontSize: 16,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderRadius: 5,
+    padding: 5,
+    width: '30%',
+    textAlign: 'center', 
   },
 });

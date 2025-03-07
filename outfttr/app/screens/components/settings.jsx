@@ -1,56 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import DropDownPicker from "react-native-dropdown-picker";
+import { ThemeContext } from "../utility/themeContext";
 import { Colors } from "../../../constants/Colors";
 
 const Settings = () => {
-  const [selectedTheme, setSelectedTheme] = useState("light");
-  const [open, setOpen] = useState(false);
+  const { theme, changeTheme, themeColors } = useContext(ThemeContext);
   const router = useRouter();
 
-  useEffect(() => {
-    const loadTheme = async () => {
-      const storedTheme = await AsyncStorage.getItem("theme");
-      if (storedTheme) {
-        setSelectedTheme(storedTheme);
-      }
-    };
-    loadTheme();
-  }, []);
-
-  const changeTheme = async (theme) => {
-    setSelectedTheme(theme);
-    await AsyncStorage.setItem("theme", theme);
-  };
-
   const handleLogout = () => {
-    router.replace("/screens/login");
+    router.replace("/screens/login"); // Redirect to Login page
   };
-
-  const themeColors = Colors[selectedTheme] || Colors.light;
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}> 
       <Text style={[styles.title, { color: themeColors.text }]}>Settings</Text>
-
+      
       <Text style={[styles.optionText, { color: themeColors.text }]}>Select Theme</Text>
-      <DropDownPicker
-        open={open}
-        value={selectedTheme}
-        items={Object.keys(Colors).map((theme) => ({
-          label: theme.charAt(0).toUpperCase() + theme.slice(1),
-          value: theme,
-        }))}
-        setOpen={setOpen}
-        setValue={setSelectedTheme}
-        onChangeValue={changeTheme}
-        containerStyle={styles.dropdownContainer}
-        style={styles.dropdown}
-        textStyle={{ color: themeColors.text }}
-      />
-
+      <View style={styles.themeOptionsContainer}>
+        {Object.keys(Colors).map((mode) => (
+          <Pressable 
+            key={mode} 
+            style={[styles.themeButton, theme === mode && styles.selectedThemeButton]} 
+            onPress={() => changeTheme(mode)}
+          >
+            <Text style={[styles.themeButtonText, { color: themeColors.text }]}> 
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      
       <Pressable style={[styles.button, { backgroundColor: themeColors.button }]} onPress={handleLogout}>
         <Text style={styles.buttonText}>Log Out</Text>
       </Pressable>
@@ -74,12 +54,23 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 10,
   },
-  dropdownContainer: {
-    width: 200,
+  themeOptionsContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     marginBottom: 20,
   },
-  dropdown: {
-    backgroundColor: "#fff",
+  themeButton: {
+    padding: 10,
+    margin: 5,
+    borderRadius: 5,
+    backgroundColor: "#ddd",
+  },
+  selectedThemeButton: {
+    backgroundColor: "#aaa",
+  },
+  themeButtonText: {
+    fontSize: 16,
   },
   button: {
     padding: 10,

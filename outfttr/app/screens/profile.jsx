@@ -1,11 +1,22 @@
-import { StyleSheet, Image, TouchableOpacity, View, Text, useColorScheme } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Image, TouchableOpacity, View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import {Colors} from '../../constants/Colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Colors } from '../../constants/Colors';
 
 export default function Profile() {
   const router = useRouter();
-  const colorScheme = useColorScheme(); 
-  const theme = Colors[colorScheme] || Colors.light;
+  const [theme, setTheme] = useState(Colors.light);
+
+  useEffect(() => {
+    const loadTheme = async () => {
+      const storedTheme = await AsyncStorage.getItem('theme');
+      if (storedTheme && Colors[storedTheme]) {
+        setTheme(Colors[storedTheme]);
+      }
+    };
+    loadTheme();
+  }, []);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -21,9 +32,7 @@ export default function Profile() {
         <Text style={[styles.title, { color: theme.text }]}>My Saved Outfits</Text>
         <View style={styles.savedOutfits}>
           {['Outfit 1', 'Outfit 2', 'Outfit 3', 'Outfit 4', 'Outfit 5', 'Outfit 6'].map((outfit, index) => (
-            <Text key={index} style={[styles.saved, { borderColor: theme.icon, color: theme.text }]}>
-              {outfit}
-            </Text>
+            <Text key={index} style={[styles.saved, { borderColor: theme.icon, color: theme.text }]}> {outfit} </Text>
           ))}
         </View>
       </View>

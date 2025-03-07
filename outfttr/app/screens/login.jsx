@@ -1,17 +1,24 @@
-import { useState } from 'react';
-import { Button, StyleSheet, TextInput, TouchableOpacity, Alert, useColorScheme } from 'react-native';
-import { Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Button, StyleSheet, TextInput, TouchableOpacity, Alert, View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../../constants/Colors';
 
 export default function Login() {
   const router = useRouter();
-  const colorScheme = useColorScheme(); 
-  const theme = colorScheme === 'dark' ? Colors.dark : Colors.ocean;
-
+  const [theme, setTheme] = useState(Colors.light);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+  useEffect(() => {
+    const loadTheme = async () => {
+      const storedTheme = await AsyncStorage.getItem('theme');
+      if (storedTheme && Colors[storedTheme]) {
+        setTheme(Colors[storedTheme]);
+      }
+    };
+    loadTheme();
+  }, []);
 
   const handleLogin = () => {
     if (username === 'Admin' && password === 'Password1') {
@@ -29,14 +36,14 @@ export default function Login() {
       <Text style={[styles.header, { color: theme.text }]}>Sign In</Text>
 
       <TextInput
-        style={[styles.input, { borderColor: theme.icon, color: theme.text }]}
+        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
         placeholder="Username"
         placeholderTextColor={theme.icon}
         value={username}
         onChangeText={setUsername}
       />
       <TextInput
-        style={[styles.input, { borderColor: theme.icon, color: theme.text }]}
+        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
         placeholder="Password"
         placeholderTextColor={theme.icon}
         secureTextEntry
@@ -81,7 +88,6 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     padding: 12,
-    backgroundColor: '#ffffff',
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 15,
@@ -106,3 +112,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
