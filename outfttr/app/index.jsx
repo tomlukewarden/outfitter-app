@@ -1,37 +1,36 @@
-import { View, Text, Button, StyleSheet, useColorScheme } from 'react-native';
+import { View, Text, Button, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Colors } from '../constants/Colors'; 
-
+import { useContext } from 'react';
+import { ThemeContext } from '../app/screens/utility/themeContext';
 
 export default function Home() {
   const router = useRouter();
-  const colorScheme = useColorScheme() || 'light';
-  const theme = Colors[colorScheme];
+  const { themeColors } = useContext(ThemeContext);
 
   console.log("Rendering Home Screen");
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       {/* Floating Circles for Decoration */}
-      <View style={[styles.circle, styles.circleTop]} />
-      <View style={[styles.circle, styles.circleBottom]} />
+      <View style={[styles.circle, styles.circleTop, { backgroundColor: themeColors.tint }]} />
+      <View style={[styles.circle, styles.circleBottom, { backgroundColor: themeColors.tint }]} />
 
-      <Text style={[styles.title, { color: theme.text }]}>Welcome to OUTFTTR</Text>
-      <Text style={[styles.subtitle, { color: theme.subText }]}>
+      <Text style={[styles.title, { color: themeColors.text }]}>Welcome to OUTFTTR</Text>
+      <Text style={[styles.subtitle, { color: themeColors.text }]}>
         Your very own wardrobe in your hand!
       </Text>
 
       <View style={styles.buttonContainer}>
-        <Text style={[styles.text, { color: theme.subText }]}>Already registered with us?</Text>
-        <View style={styles.bubbleButton}>
-          <Button title="Sign In" color={theme.button} onPress={() => router.push('/screens/login')} />
+        <Text style={[styles.text, { color: themeColors.text }]}>Already registered with us?</Text>
+        <View style={[styles.bubbleButton, { backgroundColor: themeColors.button }]}>
+          <Button title="Sign In" color={themeColors.background} onPress={() => router.push('/screens/login')} />
         </View>
       </View>
 
       <View style={styles.buttonContainer}>
-        <Text style={[styles.text, { color: theme.subText }]}>New to OutFittr?</Text>
-        <View style={styles.bubbleButton}>
-          <Button title="Sign Up" color={theme.button} onPress={() => router.push('/screens/signup')} />
+        <Text style={[styles.text, { color: themeColors.text }]}>New to OutFittr?</Text>
+        <View style={[styles.bubbleButton, { backgroundColor: themeColors.button }]}>
+          <Button title="Sign Up" color={themeColors.background} onPress={() => router.push('/screens/signup')} />
         </View>
       </View>
     </View>
@@ -70,7 +69,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: 'white',
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 4 },
     shadowOpacity: 0.2,
@@ -82,7 +80,6 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 60,
-    backgroundColor: 'rgba(0, 122, 255, 0.15)',
   },
   circleTop: {
     top: 50,
@@ -93,3 +90,4 @@ const styles = StyleSheet.create({
     right: -30,
   },
 });
+

@@ -17,7 +17,6 @@ export default function Swipe() {
     const fetchWardrobe = async () => {
       try {
         const wardrobe = await getWardrobe();
-        console.log("Fetched wardrobe data:", wardrobe);
 
         // Group wardrobe items by type
         const grouped = wardrobe.reduce((acc, item) => {
@@ -32,7 +31,6 @@ export default function Swipe() {
           return acc;
         }, {});
 
-        console.log("Grouped wardrobe data:", grouped); 
         setGroupedData(grouped);
       } catch (error) {
         console.error("Error fetching wardrobe:", error);
@@ -97,6 +95,7 @@ const styles = StyleSheet.create({
   carouselContainer: {
     flex: 1,
     width: "100%",
+    alignItems: "center",
   },
   menu: {
     position: "absolute",
