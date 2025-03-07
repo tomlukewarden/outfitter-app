@@ -1,3 +1,4 @@
+import * as MediaLibrary from "expo-media-library";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -44,13 +45,16 @@ const Wardrobe = () => {
       }
       result = await ImagePicker.launchImageLibraryAsync({ quality: 0.5 });
     }
-
+  
     if (!result.canceled) {
-      setNewItemImage(result.assets[0].uri);
+      const asset = await MediaLibrary.createAssetAsync(result.assets[0].uri);
+      console.log("Saved to media library:", asset.uri);
+  
+      setNewItemImage(asset.uri);  // Save permanent URI instead of temp
       setModalVisible(true);
     }
   };
-
+  
   const handleTypeSelection = async (type) => {
     const newItem = {
       id: Date.now(),

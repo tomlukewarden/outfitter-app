@@ -21,7 +21,7 @@ export default function Signup() {
     }
 
     Alert.alert('Registration Successful', 'You can now sign in!');
-    router.push('/login'); // Redirect to login page
+    router.push('/login'); 
   };
 
   return (

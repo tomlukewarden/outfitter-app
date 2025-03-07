@@ -23,7 +23,7 @@ export default function Swipe() {
 
         // Group wardrobe items by type
         const grouped = wardrobe.reduce((acc, item) => {
-          if (!item.type || !item.imageUri) {
+          if (!item.type && !item.imageUri) {
             console.error("Item missing 'type' or 'imageUri':", item);
             return acc;
           }
@@ -58,11 +58,11 @@ export default function Swipe() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={[styles.title, { color: theme.text }]}>Pick Today's Outfit</Text>
       <SafeAreaView style={styles.carouselContainer}>
-        {groupedData["headwear"] && <Carousel data={groupedData["headwear"]} />}
-        {groupedData["tops"] && <Carousel data={groupedData["tops"]} />}
-        {groupedData["bottoms"] && <Carousel data={groupedData["bottoms"]} />}
-        {groupedData["shoes"] && <Carousel data={groupedData["shoes"]} />}
-        {groupedData["accessories"] && <Carousel data={groupedData["accessories"]} />}
+      {groupedData["Headwear"] && <Carousel data={groupedData["Headwear"]} />}
+        {groupedData["Tops"] && <Carousel data={groupedData["Tops"]} />}
+        {groupedData["Bottoms"] && <Carousel data={groupedData["Bottoms"]} />}
+        {groupedData["Shoes"] && <Carousel data={groupedData["Shoes"]} />}
+        {groupedData["Accessories"] && <Carousel data={groupedData["Accessories"]} />}
       </SafeAreaView>
 
       {/* Bottom Menu */}
@@ -73,7 +73,7 @@ export default function Swipe() {
         <Pressable onPress={() => router.push('/screens/heart')} style={styles.menuItem}>
         <Image size={30}  source={require('./assets/heart.png')} style={[styles.menuIcon, { color: theme.background }]}></Image>
         </Pressable>
-        <Pressable onPress={() => router.push('/screens/settings')} style={styles.menuItem}>
+        <Pressable onPress={() => router.push('/screens/components/settings')} style={styles.menuItem}>
         <Image size={30} source={require('./assets/settings.png')} style={[styles.menuIcon, { color: theme.background }]}></Image>
         </Pressable>
         <Pressable onPress={() => router.push('/screens/components/wardrobe')} style={styles.menuItem}>
