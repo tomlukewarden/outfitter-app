@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import { 
-  StyleSheet, Text, Image, View, SafeAreaView, Pressable, ActivityIndicator 
+  StyleSheet, Text, Image, View, SafeAreaView, Pressable, ActivityIndicator, Platform 
 } from "react-native";
 import { useRouter } from "expo-router";
+import * as ImagePicker from 'expo-image-picker';
 import Carousel from "./components/cardCarousel";
 import { getWardrobe } from "./utility/storage";
 import { ThemeContext } from "./utility/themeContext";
@@ -12,13 +13,12 @@ export default function Swipe() {
   const { themeColors } = useContext(ThemeContext);
   const [groupedData, setGroupedData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     const fetchWardrobe = async () => {
       try {
         const wardrobe = await getWardrobe();
-
-        // Group wardrobe items by type
         const grouped = wardrobe.reduce((acc, item) => {
           if (!item.type || !item.imageUri) {
             console.error("Item missing 'type' or 'imageUri':", item);
@@ -42,6 +42,28 @@ export default function Swipe() {
     fetchWardrobe();
   }, []);
 
+  const pickImage = async () => {
+    if (Platform.OS !== "web") {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        alert("We need permission to access your photos.");
+        return;
+      }
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaType.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+      console.log("Selected image URI:", result.assets[0].uri);
+    }
+  };
+
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -61,12 +83,20 @@ export default function Swipe() {
         {groupedData["Accessories"] && <Carousel data={groupedData["Accessories"]} />}
       </SafeAreaView>
 
+      {selectedImage && (
+        <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+      )}
+
+      <Pressable onPress={pickImage} style={styles.uploadButton}>
+        <Text style={{ color: "white" }}>Upload Image</Text>
+      </Pressable>
+
       {/* Bottom Menu */}
       <View style={[styles.menu, { backgroundColor: themeColors.tint, borderColor: themeColors.icon }]}>
         <Pressable onPress={() => router.push('/screens/profile')} style={styles.menuItem}>
           <Image size={30} source={require('./assets/user.png')} style={styles.menuIcon} />
         </Pressable>
-        <Pressable onPress={() => router.push('/screens/heart')} style={styles.menuItem}>
+        <Pressable onPress={() => router.push('/screens/components/saved')} style={styles.menuItem}>
           <Image size={30} source={require('./assets/heart.png')} style={styles.menuIcon} />
         </Pressable>
         <Pressable onPress={() => router.push('/screens/components/settings')} style={styles.menuItem}>
@@ -97,6 +127,18 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
   },
+  previewImage: {
+    width: 200,
+    height: 200,
+    resizeMode: "contain",
+    marginVertical: 10,
+  },
+  uploadButton: {
+    backgroundColor: "#007AFF",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
   menu: {
     position: "absolute",
     bottom: 0,
@@ -114,4 +156,3 @@ const styles = StyleSheet.create({
     height: 30,
   },
 });
-

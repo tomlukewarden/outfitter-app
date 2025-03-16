@@ -10,8 +10,6 @@ export default function EditProfile() {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <Text style={[styles.header, { color: themeColors.text }]}>Edit Profile</Text>
-      
-      {/* Save Button */}
       <TouchableOpacity style={[styles.button, { backgroundColor: themeColors.tint }]} onPress={() => router.back()}>
         <Text style={[styles.buttonText, { color: themeColors.background }]}>Save</Text>
       </TouchableOpacity>
