@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Button, StyleSheet, TextInput, TouchableOpacity, Alert, View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from './utility/supabaseClient'; 
 import { Colors } from '../../constants/Colors';
 
 export default function SignUp() {
   const router = useRouter();
   const [theme, setTheme] = useState(Colors.light);
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   useEffect(() => {
@@ -20,12 +21,22 @@ export default function SignUp() {
     loadTheme();
   }, []);
 
-  const handleLogin = () => {
-    if (username === 'Admin' && password === 'Password1') {
-      Alert.alert('Login Successful', 'Welcome back!');
-      router.push('/screens/swipe');
-    } else {
-      Alert.alert('Login Failed', 'Invalid username or password');
+  const handleSignUp = async () => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Alert and navigate to login page
+      Alert.alert('Sign Up Successful', 'Please check your email to confirm your account.');
+      router.push('/screens/login');
+    } catch (error) {
+      Alert.alert('Sign Up Failed', error.message || 'Something went wrong.');
     }
   };
 
@@ -33,14 +44,14 @@ export default function SignUp() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={[styles.logo, { color: theme.text }]}>OUTFTTR</Text>
       <Text style={[styles.welcome, { color: theme.text }]}>Welcome to OutFittr</Text>
-      <Text style={[styles.header, { color: theme.text }]}>Sign In</Text>
+      <Text style={[styles.header, { color: theme.text }]}>Sign Up</Text>
 
       <TextInput
         style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
-        placeholder="Username"
+        placeholder="Email"
         placeholderTextColor={theme.icon}
-        value={username}
-        onChangeText={setUsername}
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
@@ -51,13 +62,13 @@ export default function SignUp() {
         onChangeText={setPassword}
       />
 
-      <TouchableOpacity style={[styles.button, { backgroundColor: theme.tint }]} onPress={handleLogin}>
+      <TouchableOpacity style={[styles.button, { backgroundColor: theme.tint }]} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Sign Up</Text>
       </TouchableOpacity>
 
       <View style={styles.footer}>
         <Text style={{ color: theme.text }}>Already have an account?</Text>
-        <Button onPress={() => router.push('/screens/signup')} title="Sign up" color={theme.tint} />
+        <Button onPress={() => router.push('/screens/login')} title="Login" color={theme.tint} />
       </View>
     </View>
   );
@@ -112,4 +123,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-
