@@ -3,13 +3,18 @@ import { Alert, StyleSheet, TextInput, TouchableOpacity, View, Text } from 'reac
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../../constants/Colors';
-import { supabase } from './utility/supabaseClient'; // Make sure this path is correct for your supabase client setup
+import { supabase } from './utility/supabaseClient'; 
 
 export default function SignUp() {
   const router = useRouter();
   const [theme, setTheme] = useState(Colors.light);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
+  const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
 
   useEffect(() => {
     const loadTheme = async () => {
@@ -22,9 +27,18 @@ export default function SignUp() {
   }, []);
 
   const handleSignUp = async () => {
+    if (!email || !password || !confirmPassword || !fullName || !username) {
+      Alert.alert('Error', 'Please fill in all required fields.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match.');
+      return;
+    }
+
     try {
-      // Call Supabase sign up function
-      const { data, error } = await supabase.auth.signUp({
+      const { user, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: password.trim(),
       });
@@ -32,14 +46,23 @@ export default function SignUp() {
       if (error) {
         throw new Error(error.message);
       }
+      const { error: profileError } = await supabase.from('profiles').insert([
+        {
+          id: user.id,
+          full_name: fullName.trim(),
+          username: username.trim(),
+          bio: bio.trim() || 'Hello! I am using OutFittr.',
+          avatar_url: avatarUrl.trim() || 'https://via.placeholder.com/100',
+        },
+      ]);
 
-      // If no error, ask the user to check their inbox for verification
+      if (profileError) {
+        throw new Error(profileError.message);
+      }
+
       Alert.alert('Sign Up Successful', 'Please check your email to confirm your account.');
-
-      // Redirect to login page after successful sign up
-      router.push('/screens/login');
+      router.push('/screens/login'); // Redirect to login page
     } catch (error) {
-      // Show an alert if an error occurs during the sign up process
       Alert.alert('Sign Up Failed', error.message || 'Something went wrong.');
     }
   };
@@ -52,8 +75,37 @@ export default function SignUp() {
 
       <TextInput
         style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
+        placeholder="Full Name"
+        placeholderTextColor={theme.icon}
+        value={fullName}
+        onChangeText={setFullName}
+      />
+      <TextInput
+        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
+        placeholder="Username"
+        placeholderTextColor={theme.icon}
+        value={username}
+        onChangeText={setUsername}
+      />
+      <TextInput
+        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
+        placeholder="Bio (Optional)"
+        placeholderTextColor={theme.icon}
+        value={bio}
+        onChangeText={setBio}
+      />
+      <TextInput
+        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
+        placeholder="Avatar URL (Optional)"
+        placeholderTextColor={theme.icon}
+        value={avatarUrl}
+        onChangeText={setAvatarUrl}
+      />
+      <TextInput
+        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
         placeholder="Email"
         placeholderTextColor={theme.icon}
+        keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
       />
@@ -64,6 +116,14 @@ export default function SignUp() {
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+      />
+      <TextInput
+        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
+        placeholder="Confirm Password"
+        placeholderTextColor={theme.icon}
+        secureTextEntry
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
       />
 
       <TouchableOpacity style={[styles.button, { backgroundColor: theme.tint }]} onPress={handleSignUp}>

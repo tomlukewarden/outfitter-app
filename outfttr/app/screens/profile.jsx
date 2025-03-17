@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Image, TouchableOpacity, View, Text } from 'react-native';
+import { StyleSheet, Image, TouchableOpacity, View, Text, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from './utility/supabaseClient'; 
 import { Colors } from '../../constants/Colors';
 
 export default function Profile() {
   const router = useRouter();
   const [theme, setTheme] = useState(Colors.light);
+  const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadTheme = async () => {
@@ -15,27 +18,73 @@ export default function Profile() {
         setTheme(Colors[storedTheme]);
       }
     };
+
     loadTheme();
+    fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    setLoading(true);
+
+    const { data: user, error: userError } = await supabase.auth.getUser();
+    console.log('Current user:', user);
+
+    if (userError || !user?.user) {
+      console.log('Error fetching user:', userError);
+      Alert.alert('User not found', 'Please log in again.');
+      setLoading(false);
+      return;
+    }
+
+    const userId = user.user.id;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('full_name, avatar_url, bio')
+      .eq('id', userId)
+      .single();
+
+    console.log('Fetched profile data:', data);
+    console.log('Fetch error:', error);
+
+    if (error) {
+      Alert.alert('Error fetching user data', error.message);
+    } else {
+      setUserProfile(data);
+    }
+
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.tint} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Image source={{ uri: 'https://via.placeholder.com/100' }} style={[styles.profileImage, { borderColor: theme.tint }]} />
-      <Text style={[styles.name, { color: theme.text }]}>John Doe</Text>
-      <Text style={[styles.bio, { color: theme.text }]}>Software Developer | Fashion Enthusiast | Tech Lover</Text>
-      
-      <TouchableOpacity style={[styles.button, { backgroundColor: theme.tint }]} onPress={() => router.push('/screens/edit-profile')}>
+      {userProfile ? (
+        <>
+          <Image
+            source={{ uri: userProfile.avatar_url || 'https://via.placeholder.com/100' }}
+            style={[styles.profileImage, { borderColor: theme.tint }]}
+          />
+          <Text style={[styles.name, { color: theme.text }]}>{userProfile.full_name || 'No Name'}</Text>
+          <Text style={[styles.bio, { color: theme.text }]}>Bio: {userProfile.bio || 'No bio available'}</Text>
+        </>
+      ) : (
+        <Text style={[styles.name, { color: theme.text }]}>No user data found</Text>
+      )}
+
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: theme.tint }]}
+        onPress={() => router.push('/screens/edit-profile')}
+      >
         <Text style={[styles.buttonText, { color: theme.background }]}>Edit Profile</Text>
       </TouchableOpacity>
-
-      <View style={[styles.container2, { borderColor: theme.icon }]}>
-        <Text style={[styles.title, { color: theme.text }]}>My Saved Outfits</Text>
-        <View style={styles.savedOutfits}>
-          {['Outfit 1', 'Outfit 2', 'Outfit 3', 'Outfit 4', 'Outfit 5', 'Outfit 6'].map((outfit, index) => (
-            <Text key={index} style={[styles.saved, { borderColor: theme.icon, color: theme.text }]}> {outfit} </Text>
-          ))}
-        </View>
-      </View>
     </View>
   );
 }
@@ -72,33 +121,5 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  container2: {
-    borderWidth: 2,
-    borderRadius: 5,
-    padding: 10,
-    marginTop: 10,
-    width: '90%',
-    height: '50%',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    borderRadius: 20,
-  },
-  savedOutfits: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  saved: {
-    fontSize: 16,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderRadius: 5,
-    padding: 5,
-    width: '30%',
-    textAlign: 'center', 
   },
 });
