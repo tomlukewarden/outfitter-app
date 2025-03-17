@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Button, StyleSheet, TextInput, TouchableOpacity, Alert, View, Text } from 'react-native';
+import { Alert, StyleSheet, TextInput, TouchableOpacity, View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from './utility/supabaseClient'; 
 import { Colors } from '../../constants/Colors';
+import { supabase } from './utility/supabaseClient'; // Make sure this path is correct for your supabase client setup
 
 export default function SignUp() {
   const router = useRouter();
@@ -23,6 +23,7 @@ export default function SignUp() {
 
   const handleSignUp = async () => {
     try {
+      // Call Supabase sign up function
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: password.trim(),
@@ -32,10 +33,13 @@ export default function SignUp() {
         throw new Error(error.message);
       }
 
-      // Alert and navigate to login page
+      // If no error, ask the user to check their inbox for verification
       Alert.alert('Sign Up Successful', 'Please check your email to confirm your account.');
+
+      // Redirect to login page after successful sign up
       router.push('/screens/login');
     } catch (error) {
+      // Show an alert if an error occurs during the sign up process
       Alert.alert('Sign Up Failed', error.message || 'Something went wrong.');
     }
   };
@@ -68,7 +72,9 @@ export default function SignUp() {
 
       <View style={styles.footer}>
         <Text style={{ color: theme.text }}>Already have an account?</Text>
-        <Button onPress={() => router.push('/screens/login')} title="Login" color={theme.tint} />
+        <TouchableOpacity onPress={() => router.push('/screens/login')}>
+          <Text style={{ color: theme.tint }}>Login</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

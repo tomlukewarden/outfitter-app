@@ -1,7 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { createClient } from '@supabase/supabase-js'
 
-const SUPABASE_URL = 'https://nrfbdqdkwihithyqyrjv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZmJkcWRrd2loaXRoeXF5cmp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIxMzg0MzIsImV4cCI6MjA1NzcxNDQzMn0.oAFgdQBx0L0lLNyfd4qSh1IXh46XJwHIL1Wq8Z8unCk';
+const supabaseUrl = 'https://qnpxypkpiclfzzpcahoc.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFucHh5cGtwaWNsZnp6cGNhaG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyMjM5MDYsImV4cCI6MjA1Nzc5OTkwNn0.eU0OO916lToOtesEuTD_wFhWzHIu8-rFpJ88jwjgecY'
 
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false,
+  },
+})

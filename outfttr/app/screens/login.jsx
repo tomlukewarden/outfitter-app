@@ -1,46 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { Button, StyleSheet, TextInput, TouchableOpacity, Alert, View, Text } from 'react-native';
-import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Colors } from '../../constants/Colors';
+import React, { useState, useEffect } from 'react'
+import { Alert, StyleSheet, View, TextInput, TouchableOpacity, Text, AppState } from 'react-native'
+import { supabase } from './utility/supabaseClient'
+import { useRouter } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Colors } from '../../constants/Colors'
+
+AppState.addEventListener('change', (state) => {
+  if (state === 'active') {
+    supabase.auth.startAutoRefresh()
+  } else {
+    supabase.auth.stopAutoRefresh()
+  }
+})
 
 export default function Login() {
-  const router = useRouter();
-  const [theme, setTheme] = useState(Colors.light);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const router = useRouter()
+  const [theme, setTheme] = useState(Colors.light)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const loadTheme = async () => {
-      const storedTheme = await AsyncStorage.getItem('theme');
+      const storedTheme = await AsyncStorage.getItem('theme')
       if (storedTheme && Colors[storedTheme]) {
-        setTheme(Colors[storedTheme]);
+        setTheme(Colors[storedTheme])
       }
-    };
-    loadTheme();
-  }, []);
-
-  const handleLogin = () => {
-    if (username === 'Admin' && password === 'Password1') {
-      Alert.alert('Login Successful', 'Welcome back!');
-      router.push('/screens/swipe');
-    } else {
-      Alert.alert('Login Failed', 'Invalid username or password');
     }
-  };
+    loadTheme()
+  }, [])
+
+  async function signInWithEmail() {
+    setLoading(true)
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    })
+
+    if (error) {
+      Alert.alert(error.message)
+      setLoading(false)
+      return
+    }
+
+    if (data?.user) {
+      router.push('/screens/swipe') 
+    }
+    setLoading(false)
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Text style={[styles.logo, { color: theme.text }]}>OUTFTTR</Text>
-      <Text style={[styles.welcome, { color: theme.text }]}>Welcome to OutFittr</Text>
-      <Text style={[styles.header, { color: theme.text }]}>Sign In</Text>
+      <Text style={[styles.header, { color: theme.text }]}>Login</Text>
 
       <TextInput
         style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
-        placeholder="Username"
+        placeholder="Email"
         placeholderTextColor={theme.icon}
-        value={username}
-        onChangeText={setUsername}
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
@@ -51,16 +70,22 @@ export default function Login() {
         onChangeText={setPassword}
       />
 
-      <TouchableOpacity style={[styles.button, { backgroundColor: theme.tint }]} onPress={handleLogin}>
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: theme.tint }]}
+        onPress={signInWithEmail}
+        disabled={loading}
+      >
         <Text style={styles.buttonText}>Sign In</Text>
       </TouchableOpacity>
 
       <View style={styles.footer}>
         <Text style={{ color: theme.text }}>Don't have an account?</Text>
-        <Button onPress={() => router.push('/screens/signup')} title="Sign up" color={theme.tint} />
+        <TouchableOpacity onPress={() => router.push('/screens/signup')}>
+          <Text style={{ color: theme.tint }}>Sign Up</Text>
+        </TouchableOpacity>
       </View>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -74,11 +99,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 20,
-  },
-  welcome: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 10,
   },
   header: {
     fontSize: 18,
@@ -111,5 +131,4 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-});
-
+})
