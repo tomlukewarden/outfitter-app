@@ -17,7 +17,7 @@ export default function Index() {
   }
 
   if (session) {
-    router.replace('/screens/dashboard');
+    router.replace('/screens/swipe');
     return null; 
   }
   return <Home />;
