@@ -49,39 +49,47 @@ export default function EditProfile() {
 
   const handleSave = async () => {
     setLoading(true);
-    
+  
     const { data: user, error: userError } = await supabase.auth.getUser();
     if (userError || !user?.user) {
       Alert.alert("Error", "No user logged in.");
       setLoading(false);
       return;
     }
-
+  
     const userId = user.user.id;
-
+  
+    // Execute both database operations
     const { error: profileError } = await supabase
-      .from("profiles") 
+      .from("profiles")
       .upsert({
         id: userId,
         full_name: name,
         bio: bio,
         avatar_url: profileImage,
       });
-
+  
     const { error: userErrorUpdate } = await supabase
-      .from("users")
-      .update({ full_name: name }) 
+      .from("users") // Ensure this table exists
+      .update({ full_name: name })
       .eq("id", userId);
-
+  
+    // Handle errors more effectively
     if (profileError || userErrorUpdate) {
-      Alert.alert("Error", profileError?.message || userErrorUpdate?.message);
+      console.error("Profile Update Error:", profileError);
+      console.error("User Table Update Error:", userErrorUpdate);
+  
+      Alert.alert("Error", 
+        `Profile Error: ${profileError?.message || "None"} \nUser Error: ${userErrorUpdate?.message || "None"}`
+      );
     } else {
       Alert.alert("Success", "Profile updated successfully!");
       router.push("/screens/profile");
     }
-
+  
     setLoading(false);
   };
+  
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
