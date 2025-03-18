@@ -59,7 +59,7 @@ export default function EditProfile() {
   
     const userId = user.user.id;
   
-    // Execute both database operations
+    // Update only the profiles table (remove users table update)
     const { error: profileError } = await supabase
       .from("profiles")
       .upsert({
@@ -69,19 +69,9 @@ export default function EditProfile() {
         avatar_url: profileImage,
       });
   
-    const { error: userErrorUpdate } = await supabase
-      .from("users") // Ensure this table exists
-      .update({ full_name: name })
-      .eq("id", userId);
-  
-    // Handle errors more effectively
-    if (profileError || userErrorUpdate) {
+    if (profileError) {
       console.error("Profile Update Error:", profileError);
-      console.error("User Table Update Error:", userErrorUpdate);
-  
-      Alert.alert("Error", 
-        `Profile Error: ${profileError?.message || "None"} \nUser Error: ${userErrorUpdate?.message || "None"}`
-      );
+      Alert.alert("Error", `Profile Update Error: ${profileError.message}`);
     } else {
       Alert.alert("Success", "Profile updated successfully!");
       router.push("/screens/profile");

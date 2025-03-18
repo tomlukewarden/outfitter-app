@@ -1,7 +1,7 @@
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useContext } from 'react';
-import { ThemeContext } from '../app/screens/utility/themeContext';
+import { ThemeContext } from './screens/utility/themeContext';
 
 export default function Home() {
   const router = useRouter();
