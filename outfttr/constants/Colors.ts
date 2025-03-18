@@ -46,6 +46,15 @@ export const Colors = {
     tabIconSelected: '#1D7874',  
     button: '#64A6BD',  
   },
+  colorblind: {
+    text: '#222222',        
+    background: '#F8F8F8', 
+    tint: '#005A9C',        
+    icon: '#FFD700',       
+    tabIconDefault: '#0073E6', 
+    tabIconSelected: '#FFAA00', 
+    button: '#004488',     
+  },
   
   
 };
