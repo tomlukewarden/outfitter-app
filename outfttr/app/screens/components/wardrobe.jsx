@@ -10,16 +10,15 @@ import {
   Pressable,
   Alert,
   Modal,
+  TextInput,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { supabase } from "../utility/supabaseClient"; 
-import { useAuth } from "../utility/authContext"; 
+import { saveWardrobe, getWardrobe } from "../utility/storage";
 import { ThemeContext } from "../utility/themeContext";
 
 const CLOTHING_TYPES = ["Headwear", "Tops", "Bottoms", "Shoes", "Accessories"];
 
 const Wardrobe = () => {
-  const { user } = useAuth();
   const [wardrobe, setWardrobe] = useState([]);
   const [newItemImage, setNewItemImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -27,44 +26,16 @@ const Wardrobe = () => {
   const { themeColors } = useContext(ThemeContext);
 
   useEffect(() => {
-    const fetchWardrobe = async () => {
-      if (!user) return;
+    const fetchData = async () => {
       try {
-        const { data, error } = await supabase
-          .from("wardrobe")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
-        
-        if (error) throw error;
-        setWardrobe(data || []);
+        const storedWardrobe = await getWardrobe();
+        setWardrobe(storedWardrobe || []);
       } catch (error) {
-        console.error("Error fetching wardrobe:", error.message);
+        console.error("Error fetching wardrobe:", error);
       }
     };
-
-    fetchWardrobe();
-  }, [user]);
-
-  const uploadImageToSupabase = async (uri) => {
-    try {
-      const fileName = `wardrobe/${user.id}/${Date.now()}.jpg`;
-      const { data, error } = await supabase.storage
-        .from("wardrobe")
-        .upload(fileName, {
-          uri,
-          type: "image/jpeg",
-          name: fileName,
-        });
-      
-      if (error) throw error;
-      return `${supabase.storage.from("wardrobe").getPublicUrl(fileName).data.publicUrl}`;
-    } catch (error) {
-      console.error("Error uploading image:", error.message);
-      Alert.alert("Upload Error", "Could not upload image.");
-      return null;
-    }
-  };
+    fetchData();
+  }, []);
 
   const handleAddItem = async (source) => {
     try {
@@ -84,9 +55,16 @@ const Wardrobe = () => {
         }
         result = await ImagePicker.launchImageLibraryAsync({ quality: 0.5 });
       }
-      
+
       if (!result.canceled) {
-        setNewItemImage(result.assets[0].uri);
+        let imageUri = result.assets[0].uri;
+        if (imageUri.startsWith("ph://")) {
+          const asset = await MediaLibrary.createAssetAsync(imageUri);
+          const assetInfo = await MediaLibrary.getAssetInfoAsync(asset);
+          imageUri = assetInfo.localUri;
+        }
+
+        setNewItemImage(imageUri);
         setModalVisible(true);
       }
     } catch (error) {
@@ -96,41 +74,30 @@ const Wardrobe = () => {
   };
 
   const handleSaveItem = async () => {
-    if (!newItemImage || !newItemType || !user) {
+    if (!newItemImage || !newItemType) {
       Alert.alert("Missing Information", "Please select a clothing type.");
       return;
     }
 
-    const uploadedImageUrl = await uploadImageToSupabase(newItemImage);
-    if (!uploadedImageUrl) return;
+    const newItem = {
+      id: Date.now(),
+      title: `Item ${wardrobe.length + 1}`,
+      imageUri: newItemImage,
+      type: newItemType,
+    };
 
-    try {
-      const { data, error } = await supabase
-        .from("wardrobe")
-        .insert([{ user_id: user.id, image_url: uploadedImageUrl, type: newItemType }])
-        .select();
-
-      if (error) throw error;
-
-      setWardrobe([...wardrobe, ...data]);
-      setModalVisible(false);
-      setNewItemImage(null);
-      setNewItemType("");
-    } catch (error) {
-      console.error("Error saving wardrobe item:", error.message);
-      Alert.alert("Error", "Could not save wardrobe item.");
-    }
+    const updatedWardrobe = [...wardrobe, newItem];
+    setWardrobe(updatedWardrobe);
+    await saveWardrobe(updatedWardrobe);
+    setModalVisible(false);
+    setNewItemImage(null);
+    setNewItemType("");
   };
 
   const handleDeleteItem = async (id) => {
-    try {
-      const { error } = await supabase.from("wardrobe").delete().eq("id", id);
-      if (error) throw error;
-      setWardrobe(wardrobe.filter((item) => item.id !== id));
-    } catch (error) {
-      console.error("Error deleting wardrobe item:", error.message);
-      Alert.alert("Error", "Could not delete wardrobe item.");
-    }
+    const updatedWardrobe = wardrobe.filter((item) => item.id !== id);
+    setWardrobe(updatedWardrobe);
+    await saveWardrobe(updatedWardrobe);
   };
 
   return (
@@ -144,7 +111,8 @@ const Wardrobe = () => {
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={[styles.itemContainer, { backgroundColor: themeColors.card }]}> 
-            <Image source={{ uri: item.image_url }} style={styles.image} />
+            <Image source={{ uri: item.imageUri }} style={styles.image} />
+            <Text style={[styles.itemText, { color: themeColors.text }]}>{item.title}</Text>
             <Text style={[styles.itemText, { color: themeColors.text }]}>{item.type}</Text>
             <Pressable onPress={() => handleDeleteItem(item.id)}>
               <Text style={styles.deleteText}>Delete</Text>
@@ -152,9 +120,10 @@ const Wardrobe = () => {
           </View>
         )}
       />
+
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Select Clothing Type</Text>
+          <Text style={styles.modalTitle}>Select Clothing Type </Text>
           {CLOTHING_TYPES.map((type) => (
             <Pressable key={type} onPress={() => setNewItemType(type)}>
               <Text style={[styles.modalOption, newItemType === type && styles.selectedOption]}>{type}</Text>
@@ -167,5 +136,18 @@ const Wardrobe = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
+  itemContainer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "90%", padding: 10, borderRadius: 10 },
+  image: { width: 100, height: 100, borderRadius: 10, marginRight: 10 },
+  itemText: { fontSize: 16 },
+  deleteText: { color: "red", marginLeft: 10 },
+  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "white" },
+  modalOption: { fontSize: 18, color: "white", padding: 10 },
+  selectedOption: { fontWeight: "bold", textDecorationLine: "underline" },
+});
 
 export default Wardrobe;
