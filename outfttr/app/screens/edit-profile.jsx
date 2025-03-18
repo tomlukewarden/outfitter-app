@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
-import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Button } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { ThemeContext } from "../screens/utility/themeContext";
 import { supabase } from "../screens/utility/supabaseClient"; 
 import { useRouter } from "expo-router";
+import { Ionicons } from '@expo/vector-icons'; // For camera icon
 
 export default function EditProfile() {
   const { themeColors } = useContext(ThemeContext);
@@ -79,7 +80,6 @@ export default function EditProfile() {
   
     setLoading(false);
   };
-  
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -121,7 +121,7 @@ export default function EditProfile() {
         .from("profile_pictures")
         .getPublicUrl(fileName);
 
-      setProfileImage(publicUrl.publicUrl);
+      setProfileImage(publicUrl.publicUrl);  // Update profile image URL with the new one
     }
 
     setUploading(false);
@@ -131,12 +131,16 @@ export default function EditProfile() {
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <Text style={[styles.header, { color: themeColors.text }]}>Edit Profile</Text>
 
-      <TouchableOpacity onPress={pickImage}>
+      {/* Profile Image Upload with Button */}
+      <TouchableOpacity onPress={pickImage} style={styles.profileImageWrapper}>
         <Image
           source={{ uri: profileImage || 'https://via.placeholder.com/100' }}
           style={[styles.profileImage, { borderColor: themeColors.tint }]}
         />
         {uploading && <ActivityIndicator size="small" color={themeColors.tint} />}
+        <View style={styles.cameraIconWrapper}>
+          <Button style={[styles.button, { borderColor: themeColors.tint }]}>Upload Profile Picture</Button>
+        </View>
       </TouchableOpacity>
 
       <TextInput
@@ -167,7 +171,6 @@ export default function EditProfile() {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {

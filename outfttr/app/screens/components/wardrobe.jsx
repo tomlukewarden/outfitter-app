@@ -16,7 +16,7 @@ import * as ImagePicker from "expo-image-picker";
 import { saveWardrobe, getWardrobe } from "../utility/storage";
 import { ThemeContext } from "../utility/themeContext";
 
-const CLOTHING_TYPES = ["Headwear", "Tops", "Bottoms", "Shoes", "Accessories"];
+const CLOTHING_TYPES = ["Headwear", "Tops", "Bottoms", "Shoes", ];
 
 const Wardrobe = () => {
   const [wardrobe, setWardrobe] = useState([]);
