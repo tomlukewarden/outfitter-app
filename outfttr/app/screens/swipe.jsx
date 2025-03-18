@@ -1,46 +1,63 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import { 
   StyleSheet, Text, Image, View, SafeAreaView, Pressable, ActivityIndicator, Platform 
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native"; 
 import * as ImagePicker from 'expo-image-picker';
 import Carousel from "./components/cardCarousel";
-import { getWardrobe } from "./utility/storage";
+import { supabase } from "../utility/supabaseClient"; 
+import { useAuth } from "../utility/useAuthSession"; 
 import { ThemeContext } from "./utility/themeContext";
 
 export default function Swipe() {
   const router = useRouter();
   const { themeColors } = useContext(ThemeContext);
+  const { user } = useAuth(); // Access the authenticated user
   const [groupedData, setGroupedData] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  useEffect(() => {
-    const fetchWardrobe = async () => {
-      try {
-        const wardrobe = await getWardrobe();
-        const grouped = wardrobe.reduce((acc, item) => {
-          if (!item.type || !item.imageUri) {
-            console.error("Item missing 'type' or 'imageUri':", item);
-            return acc;
-          }
-          if (!acc[item.type]) {
-            acc[item.type] = [];
-          }
-          acc[item.type].push(item);
+  const fetchWardrobe = async () => {
+    if (!user) return; // If user is not authenticated, do nothing
+    try {
+      const { data, error } = await supabase
+        .from("wardrobe")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+        
+      if (error) throw error;
+      
+      const grouped = data.reduce((acc, item) => {
+        if (!item.type || !item.image_url) {
+          console.error("Item missing 'type' or 'image_url':", item);
           return acc;
-        }, {});
+        }
+        if (!acc[item.type]) {
+          acc[item.type] = [];
+        }
+        acc[item.type].push(item);
+        return acc;
+      }, {});
 
-        setGroupedData(grouped);
-      } catch (error) {
-        console.error("Error fetching wardrobe:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setGroupedData(grouped);
+    } catch (error) {
+      console.error("Error fetching wardrobe:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchWardrobe();
+    }, [user]) // Fetch wardrobe whenever the user changes
+  );
+
+  useEffect(() => {
     fetchWardrobe();
-  }, []);
+  }, [user]); // Ensure fetch happens on user change
 
   const pickImage = async () => {
     if (Platform.OS !== "web") {
@@ -109,50 +126,3 @@ export default function Swipe() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 10,
-  },
-  title: {
-    fontSize: 18, 
-    fontWeight: "bold",
-    marginVertical: 10,
-  },
-  carouselContainer: {
-    flex: 1,
-    width: "100%",
-    alignItems: "center",
-  },
-  previewImage: {
-    width: 200,
-    height: 200,
-    resizeMode: "contain",
-    marginVertical: 10,
-  },
-  uploadButton: {
-    backgroundColor: "#007AFF",
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  menu: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 15,
-    borderTopWidth: 1,
-  },
-  menuItem: {
-    padding: 10,
-  },
-  menuIcon: {
-    width: 30,
-    height: 30,
-  },
-});
