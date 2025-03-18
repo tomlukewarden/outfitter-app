@@ -38,7 +38,7 @@ export default function SignUp() {
     }
 
     try {
-      const { user, error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password: password.trim(),
       });
@@ -46,9 +46,17 @@ export default function SignUp() {
       if (error) {
         throw new Error(error.message);
       }
-      const { error: profileError } = await supabase.from('profiles').insert([
+
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) {
+        throw new Error('Please check your email to confirm your account.');
+      }
+
+      const userId = sessionData.session.user.id;
+
+      const { error: profileError } = await supabase.from('profiles').upsert([
         {
-          id: user.id,
+          id: userId,
           full_name: fullName.trim(),
           username: username.trim(),
           bio: bio.trim() || 'Hello! I am using OutFittr.',
@@ -60,76 +68,32 @@ export default function SignUp() {
         throw new Error(profileError.message);
       }
 
-      Alert.alert('Sign Up Successful', 'Please check your email to confirm your account.');
-      router.push('/screens/login'); // Redirect to login page
+      Alert.alert('Sign Up Successful', 'Thanks for joining OutFttr!');
+      router.push('/screens/swipe');
     } catch (error) {
       Alert.alert('Sign Up Failed', error.message || 'Something went wrong.');
+      console.log('Error signing up:', error);
     }
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}> 
       <Text style={[styles.logo, { color: theme.text }]}>OUTFTTR</Text>
       <Text style={[styles.welcome, { color: theme.text }]}>Welcome to OutFittr</Text>
       <Text style={[styles.header, { color: theme.text }]}>Sign Up</Text>
 
-      <TextInput
-        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
-        placeholder="Full Name"
-        placeholderTextColor={theme.icon}
-        value={fullName}
-        onChangeText={setFullName}
-      />
-      <TextInput
-        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
-        placeholder="Username"
-        placeholderTextColor={theme.icon}
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
-        placeholder="Bio (Optional)"
-        placeholderTextColor={theme.icon}
-        value={bio}
-        onChangeText={setBio}
-      />
-      <TextInput
-        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
-        placeholder="Avatar URL (Optional)"
-        placeholderTextColor={theme.icon}
-        value={avatarUrl}
-        onChangeText={setAvatarUrl}
-      />
-      <TextInput
-        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
-        placeholder="Email"
-        placeholderTextColor={theme.icon}
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
-        placeholder="Password"
-        placeholderTextColor={theme.icon}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TextInput
-        style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]}
-        placeholder="Confirm Password"
-        placeholderTextColor={theme.icon}
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
-
+      <TextInput style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]} placeholder="Full Name" placeholderTextColor={theme.icon} value={fullName} onChangeText={setFullName} />
+      <TextInput style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]} placeholder="Username" placeholderTextColor={theme.icon} value={username} onChangeText={setUsername} />
+      <TextInput style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]} placeholder="Bio (Optional)" placeholderTextColor={theme.icon} value={bio} onChangeText={setBio} />
+      <TextInput style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]} placeholder="Avatar URL (Optional)" placeholderTextColor={theme.icon} value={avatarUrl} onChangeText={setAvatarUrl} />
+      <TextInput style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]} placeholder="Email" placeholderTextColor={theme.icon} keyboardType="email-address" value={email} onChangeText={setEmail} />
+      <TextInput style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]} placeholder="Password" placeholderTextColor={theme.icon} secureTextEntry value={password} onChangeText={setPassword} />
+      <TextInput style={[styles.input, { borderColor: theme.icon, color: theme.text, backgroundColor: theme.inputBackground }]} placeholder="Confirm Password" placeholderTextColor={theme.icon} secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
+      
       <TouchableOpacity style={[styles.button, { backgroundColor: theme.tint }]} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Sign Up</Text>
       </TouchableOpacity>
-
+      
       <View style={styles.footer}>
         <Text style={{ color: theme.text }}>Already have an account?</Text>
         <TouchableOpacity onPress={() => router.push('/screens/login')}>
@@ -141,51 +105,12 @@ export default function SignUp() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  logo: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  welcome: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  header: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  input: {
-    width: '100%',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 15,
-    fontSize: 16,
-  },
-  button: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    width: '100%',
-    marginTop: 10,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  footer: {
-    marginTop: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
+  logo: { fontSize: 32, fontWeight: 'bold', marginBottom: 20 },
+  welcome: { fontSize: 20, fontWeight: '600', marginBottom: 10 },
+  header: { fontSize: 18, fontWeight: 'bold', marginBottom: 20 },
+  input: { width: '100%', padding: 12, borderRadius: 8, borderWidth: 1, marginBottom: 15, fontSize: 16 },
+  button: { paddingVertical: 12, paddingHorizontal: 24, borderRadius: 8, alignItems: 'center', width: '100%', marginTop: 10 },
+  buttonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  footer: { marginTop: 20, flexDirection: 'row', alignItems: 'center' },
 });

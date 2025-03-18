@@ -91,6 +91,8 @@ export default function Swipe() {
         <Text style={{ color: "white" }}>Upload Image</Text>
       </Pressable>
 
+  
+
       {/* Bottom Menu */}
       <View style={[styles.menu, { backgroundColor: themeColors.tint, borderColor: themeColors.icon }]}>
         <Pressable onPress={() => router.push('/screens/profile')} style={styles.menuItem}>
