@@ -46,12 +46,10 @@ export default function Swipe() {
   }, []);
 
   const saveOutfit = () => {
-    // Capture the screenshot of the outfit
     outfitRef.current.capture().then(uri => {
       console.log("Saved outfit as image:", uri);
       setSavedOutfits([...savedOutfits, uri]);
 
-      // Show a confirmation alert to the user
       Alert.alert("Outfit Saved", "Your outfit has been successfully saved!");
     }).catch(error => {
       console.error("Error saving outfit:", error);
