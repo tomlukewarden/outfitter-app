@@ -4,7 +4,6 @@ import * as ImagePicker from "expo-image-picker";
 import { ThemeContext } from "../screens/utility/themeContext";
 import { supabase } from "../screens/utility/supabaseClient"; 
 import { useRouter } from "expo-router";
-import { Ionicons } from '@expo/vector-icons'; // For camera icon
 
 export default function EditProfile() {
   const { themeColors } = useContext(ThemeContext);
@@ -139,7 +138,7 @@ export default function EditProfile() {
         />
         {uploading && <ActivityIndicator size="small" color={themeColors.tint} />}
         <View style={styles.cameraIconWrapper}>
-          <Button style={[styles.button, { borderColor: themeColors.tint }]}>Upload Profile Picture</Button>
+          <Button title="upload" style={[styles.button, { borderColor: themeColors.tint }]}>Upload Profile Picture</Button>
         </View>
       </TouchableOpacity>
 
