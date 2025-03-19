@@ -1,3 +1,4 @@
+import * as MediaLibrary from "expo-media-library";
 import React, { useState, useEffect, useContext } from "react";
 import {
   View,
@@ -9,9 +10,10 @@ import {
   Pressable,
   Alert,
   Modal,
+  TextInput,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { supabase } from "../utility/supabaseClient";
+import { saveWardrobe, getWardrobe } from "../utility/storage";
 import { ThemeContext } from "../utility/themeContext";
 
 const CLOTHING_TYPES = ["Headwear", "Tops", "Bottoms", "Shoes"];
@@ -24,34 +26,16 @@ const Wardrobe = () => {
   const { themeColors } = useContext(ThemeContext);
 
   useEffect(() => {
-    fetchWardrobe();
-  }, []);
-
-  const fetchWardrobe = async () => {
-    try {
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError || !user?.user) {
-        Alert.alert("Error", "No user logged in.");
-        return;
-      }
-
-      const userId = user.user.id;
-
-      const { data, error } = await supabase
-        .from("wardrobe")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (error) {
+    const fetchData = async () => {
+      try {
+        const storedWardrobe = await getWardrobe();
+        setWardrobe(storedWardrobe || []);
+      } catch (error) {
         console.error("Error fetching wardrobe:", error);
-      } else {
-        setWardrobe(data);
       }
-    } catch (error) {
-      console.error("Error fetching wardrobe:", error);
-    }
-  };
+    };
+    fetchData();
+  }, []);
 
   const handleAddItem = async (source) => {
     try {
@@ -73,7 +57,14 @@ const Wardrobe = () => {
       }
 
       if (!result.canceled) {
-        setNewItemImage(result.assets[0].uri);
+        let imageUri = result.assets[0].uri;
+        if (imageUri.startsWith("ph://")) {
+          const asset = await MediaLibrary.createAssetAsync(imageUri);
+          const assetInfo = await MediaLibrary.getAssetInfoAsync(asset);
+          imageUri = assetInfo.localUri;
+        }
+
+        setNewItemImage(imageUri);
         setModalVisible(true);
       }
     } catch (error) {
@@ -82,120 +73,46 @@ const Wardrobe = () => {
     }
   };
 
-  const uploadImage = async (imageUri) => {
-    try {
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError || !user?.user) {
-        Alert.alert("Error", "No user logged in.");
-        return null;
-      }
-
-      const userId = user.user.id;
-      const fileName = `wardrobe/${userId}_${Date.now()}.jpg`;
-
-      const response = await fetch(imageUri);
-      const blob = await response.blob();
-
-      const { data, error } = await supabase.storage
-        .from("wardrobeimages")
-        .upload(fileName, blob, { upsert: true });
-
-      if (error) {
-        Alert.alert("Upload Error", error.message);
-        return null;
-      }
-
-      const { data: publicUrl } = supabase.storage
-        .from("wardrobeimages")
-        .getPublicUrl(fileName);
-
-      return publicUrl.publicUrl;
-    } catch (error) {
-      console.error("Image upload error:", error);
-      Alert.alert("Error", "Failed to upload image.");
-      return null;
-    }
-  };
-
   const handleSaveItem = async () => {
     if (!newItemImage || !newItemType) {
       Alert.alert("Missing Information", "Please select a clothing type.");
       return;
     }
-  
-    const imageUrl = await uploadImage(newItemImage);
-    if (!imageUrl) return;
-  
-    try {
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError || !user?.user) {
-        Alert.alert("Error", "No user logged in.");
-        return;
-      }
-  
-      const userId = user.user.id;
-  
-      const newItem = {
-        user_id: userId,
-        image_url: imageUrl,
-        type: newItemType,
-        id: Date.now(), // Temporary ID for instant update
-      };
-  
-      // Optimistically update the UI before fetching new data
-      setWardrobe((prevWardrobe) => [newItem, ...prevWardrobe]);
-  
-      const { error } = await supabase.from("wardrobe").insert([
-        {
-          user_id: userId,
-          image_url: imageUrl,
-          type: newItemType,
-        },
-      ]);
-  
-      if (error) {
-        console.error("Error saving item:", error);
-        Alert.alert("Error", "Could not save item.");
-        return;
-      }
-  
-      Alert.alert("Success", "Item added to wardrobe!");
-      fetchWardrobe(); // Fetch updated wardrobe from DB
-    } catch (error) {
-      console.error("Error saving item:", error);
-    }
-  
+
+    const newItem = {
+      id: Date.now(),
+      title: `Item ${wardrobe.length + 1}`,
+      imageUri: newItemImage,
+      type: newItemType,
+    };
+
+    const updatedWardrobe = [...wardrobe, newItem];
+    setWardrobe(updatedWardrobe);
+    await saveWardrobe(updatedWardrobe);
     setModalVisible(false);
     setNewItemImage(null);
     setNewItemType("");
   };
-  
+
   const handleDeleteItem = async (id) => {
-    try {
-      const { error } = await supabase.from("wardrobe").delete().eq("id", id);
-      if (error) {
-        console.error("Error deleting item:", error);
-        Alert.alert("Error", "Could not delete item.");
-      } else {
-        setWardrobe(wardrobe.filter((item) => item.id !== id));
-      }
-    } catch (error) {
-      console.error("Error deleting item:", error);
-    }
+    const updatedWardrobe = wardrobe.filter((item) => item.id !== id);
+    setWardrobe(updatedWardrobe);
+    await saveWardrobe(updatedWardrobe);
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}> 
       <Text style={[styles.title, { color: themeColors.text }]}>My Wardrobe</Text>
       <Button title="Add Item from Gallery" onPress={() => handleAddItem("gallery")} />
       <Button title="Add Item from Camera" onPress={() => handleAddItem("camera")} />
-
+      
       <FlatList
         data={wardrobe}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={[styles.itemContainer, { backgroundColor: themeColors.card }]}>
-            <Image source={{ uri: item.image_url }} style={styles.image} />
+          <View style={[styles.itemContainer, { backgroundColor: themeColors.card }]}> 
+            <Image source={{ uri: item.imageUri }} style={styles.image} />
+            <Text style={[styles.itemText, { color: themeColors.text }]}>{item.title}</Text>
             <Text style={[styles.itemText, { color: themeColors.text }]}>{item.type}</Text>
             <Pressable onPress={() => handleDeleteItem(item.id)}>
               <Text style={styles.deleteText}>Delete</Text>
@@ -206,12 +123,10 @@ const Wardrobe = () => {
 
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Select Clothing Type</Text>
+          <Text style={styles.modalTitle}>Select Clothing Type </Text>
           {CLOTHING_TYPES.map((type) => (
             <Pressable key={type} onPress={() => setNewItemType(type)}>
-              <Text style={[styles.modalOption, newItemType === type && styles.selectedOption]}>
-                {type}
-              </Text>
+              <Text style={[styles.modalOption, newItemType === type && styles.selectedOption]}>{type}</Text>
             </Pressable>
           ))}
           <Button title="Save Item" onPress={handleSaveItem} />

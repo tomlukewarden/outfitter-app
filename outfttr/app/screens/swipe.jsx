@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
-  StyleSheet, Text, Image, View, SafeAreaView, Pressable, ActivityIndicator, Platform, Alert 
+  StyleSheet, Text, Image, View, SafeAreaView, Pressable, ActivityIndicator, Platform 
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from 'expo-image-picker';
 import Carousel from "./components/cardCarousel";
 import { getWardrobe } from "./utility/storage";
 import { ThemeContext } from "./utility/themeContext";
-import * as ViewShot from "react-native-view-shot";
 
 export default function Swipe() {
   const router = useRouter();
@@ -15,8 +14,6 @@ export default function Swipe() {
   const [groupedData, setGroupedData] = useState({});
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [savedOutfits, setSavedOutfits] = useState([]);
-  const outfitRef = useRef();
 
   useEffect(() => {
     const fetchWardrobe = async () => {
@@ -45,16 +42,26 @@ export default function Swipe() {
     fetchWardrobe();
   }, []);
 
-  const saveOutfit = () => {
-    outfitRef.current.capture().then(uri => {
-      console.log("Saved outfit as image:", uri);
-      setSavedOutfits([...savedOutfits, uri]);
+  const pickImage = async () => {
+    if (Platform.OS !== "web") {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        alert("We need permission to access your photos.");
+        return;
+      }
+    }
 
-      Alert.alert("Outfit Saved", "Your outfit has been successfully saved!");
-    }).catch(error => {
-      console.error("Error saving outfit:", error);
-      Alert.alert("Save Failed", "There was an error saving your outfit. Please try again.");
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaType.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
     });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+      console.log("Selected image URI:", result.assets[0].uri);
+    }
   };
 
   if (loading) {
@@ -79,28 +86,17 @@ export default function Swipe() {
         <Image source={{ uri: selectedImage }} style={styles.previewImage} />
       )}
 
-      <View style={styles.saveButtonContainer}>
-        <Pressable style={styles.saveButton} onPress={saveOutfit}>
-          <Text style={styles.saveButtonText}>Save Outfit</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.outfitContainer} ref={outfitRef}>
-        {/* Here you would create a combined view of the selected outfit */}
-        {selectedImage && <Image source={{ uri: selectedImage }} style={styles.previewImage} />}
-        {/* Add other selected outfit components (Headwear, Tops, Bottoms, Shoes) here */}
-      </View>
+      <Pressable onPress={pickImage} style={styles.uploadButton}>
+        <Text style={{ color: "white" }}>Upload Image</Text>
+      </Pressable>
 
       {/* Bottom Menu */}
       <View style={[styles.menu, { backgroundColor: themeColors.tint, borderColor: themeColors.icon }]}>
         <Pressable onPress={() => router.push('/screens/profile')} style={styles.menuItem}>
           <Image size={30} source={require('./assets/user.png')} style={styles.menuIcon} />
         </Pressable>
-        <Pressable onPress={saveOutfit} style={styles.menuItem}>
-          <Image size={30} source={require('./assets/heart.png')} style={styles.menuIcon} />
-        </Pressable>
         <Pressable onPress={() => router.push('/screens/components/saved')} style={styles.menuItem}>
-          <Image size={30} source={require('./assets/save.png')} style={styles.menuIcon} />
+          <Image size={30} source={require('./assets/heart.png')} style={styles.menuIcon} />
         </Pressable>
         <Pressable onPress={() => router.push('/screens/components/settings')} style={styles.menuItem}>
           <Image size={30} source={require('./assets/settings.png')} style={styles.menuIcon} />
@@ -112,6 +108,7 @@ export default function Swipe() {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -144,7 +141,7 @@ const styles = StyleSheet.create({
   menu: {
     position: "absolute",
     bottom: 0,
-    width: 410,
+    width: "100%",
     flexDirection: "row",
     justifyContent: "space-around",
     paddingVertical: 15,
@@ -157,23 +154,4 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
   },
-  saveButtonContainer: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 20, 
-  },
-  
-  saveButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 30, 
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  
-  saveButtonText: {
-    fontWeight: "bold",
-    fontSize: 16,
-  }
-  
 });
