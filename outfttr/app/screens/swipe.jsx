@@ -95,8 +95,11 @@ export default function Swipe() {
         <Pressable onPress={() => router.push('/screens/profile')} style={styles.menuItem}>
           <Image size={30} source={require('./assets/user.png')} style={styles.menuIcon} />
         </Pressable>
-        <Pressable onPress={() => router.push('/screens/components/saved')} style={styles.menuItem}>
+        <Pressable onPress={saveOutfit} style={styles.menuItem}>
           <Image size={30} source={require('./assets/heart.png')} style={styles.menuIcon} />
+        </Pressable>
+        <Pressable onPress={() => router.push('/screens/components/saved')} style={styles.menuItem}>
+          <Image size={30} source={require('./assets/save.png')} style={styles.menuIcon} />
         </Pressable>
         <Pressable onPress={() => router.push('/screens/components/settings')} style={styles.menuItem}>
           <Image size={30} source={require('./assets/settings.png')} style={styles.menuIcon} />
