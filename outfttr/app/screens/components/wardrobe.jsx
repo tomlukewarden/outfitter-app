@@ -1,4 +1,5 @@
 import * as MediaLibrary from "expo-media-library";
+import { useRouter } from "expo-router";
 import React, { useState, useEffect, useContext } from "react";
 import {
   View,
@@ -19,6 +20,7 @@ import { ThemeContext } from "../utility/themeContext";
 const CLOTHING_TYPES = ["Headwear", "Tops", "Bottoms", "Shoes"];
 
 const Wardrobe = () => {
+  const router = useRouter();
   const [wardrobe, setWardrobe] = useState([]);
   const [newItemImage, setNewItemImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -102,6 +104,9 @@ const Wardrobe = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}> 
+         <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <Image source={require('../assets/back.png')} style={styles.icon} />
+          </Pressable>
       <Text style={[styles.title, { color: themeColors.text }]}>My Wardrobe</Text>
       <Button title="Add Item from Gallery" onPress={() => handleAddItem("gallery")} />
       <Button title="Add Item from Camera" onPress={() => handleAddItem("camera")} />
@@ -148,6 +153,16 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "white" },
   modalOption: { fontSize: 18, color: "white", padding: 10 },
   selectedOption: { fontWeight: "bold", textDecorationLine: "underline" },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 10,
+  },
+  icon: { 
+    width: 24, 
+    height: 24, 
+  },
 });
 
 export default Wardrobe;

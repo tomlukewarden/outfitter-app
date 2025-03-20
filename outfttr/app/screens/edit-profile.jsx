@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Button } from "react-native";
+import { View, Text, TextInput, Image, TouchableOpacity, Pressable, StyleSheet, Alert, ActivityIndicator, Button } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { ThemeContext } from "../screens/utility/themeContext";
 import { supabase } from "../screens/utility/supabaseClient"; 
@@ -128,6 +128,9 @@ export default function EditProfile() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      <Pressable style={styles.backButton} onPress={() => router.back()}>
+              <Image source={require('./assets/back.png')} style={styles.icon} />
+            </Pressable>
       <Text style={[styles.header, { color: themeColors.text }]}>Edit Profile</Text>
 
       {/* Profile Image Upload with Button */}
@@ -208,5 +211,21 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: "bold",
+  },
+  cameraIconWrapper: {
+    backgroundColor: "#fff",
+    padding: 5,
+    marginBottom: 10,
+    borderRadius: 15,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 10,
+  },
+  icon: {
+    width: 24,
+    height: 24,
   },
 });

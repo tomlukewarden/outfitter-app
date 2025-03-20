@@ -11,7 +11,7 @@ export default function Carousel({ data, onItemSelect, selectedItem }) {
           <View
             style={[
               styles.imageContainer,
-              selectedItem?.id === item.id && styles.selected, // Highlight selected item
+              selectedItem?.id === item.id && styles.selected,
             ]}
           >
             <Image source={{ uri: item.imageUri }} style={styles.image} />
@@ -25,14 +25,13 @@ export default function Carousel({ data, onItemSelect, selectedItem }) {
 
 const styles = StyleSheet.create({
   imageContainer: {
-    marginHorizontal: 10,
     alignItems: "center",
     padding: 5,
     borderRadius: 10,
   },
   image: {
-    width: 150,
-    height: 150,
+    width: 140,
+    height: 140,
     borderRadius: 10,
   },
   selected: {

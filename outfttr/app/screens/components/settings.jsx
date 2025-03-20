@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "../utility/themeContext";
 import { Colors } from "../../../constants/Colors";
@@ -25,6 +25,9 @@ const Settings = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+           <Pressable style={styles.backButton} onPress={() => router.back()}>
+              <Image source={require('../assets/back.png')} style={styles.icon} />
+            </Pressable>
       <Text style={[styles.title, { color: themeColors.text, fontFamily: font, fontSize }]}>Settings</Text>
 
       {/* Theme Selection */}
@@ -147,6 +150,16 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  icon: {
+    width: 24,
+    height: 24,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 10,
   },
 });
 

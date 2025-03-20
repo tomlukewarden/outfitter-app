@@ -78,6 +78,7 @@ export default function Swipe() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
+      
       <Text style={[styles.title, { color: themeColors.text }]}>Pick Today's Outfit</Text>
       <SafeAreaView style={styles.carouselContainer}>
         {groupedData["Headwear"] && (
@@ -132,12 +133,11 @@ export default function Swipe() {
   );
 }
 
-// ✅ Styles
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 10 },
   title: { fontSize: 18, fontWeight: "bold", marginVertical: 10 },
-  carouselContainer: { flex: 1, width: "100%", alignItems: "center" },
-  menu: { position: "absolute", bottom: 0, width: "100%", flexDirection: "row", justifyContent: "space-around", paddingVertical: 15, borderTopWidth: 1 },
+  carouselContainer: { flex: 1, width: "100%", alignItems: "center"},
+  menu: { position: "absolute", bottom: 0, width: 410, flexDirection: "row", justifyContent: "space-around", paddingVertical: 2, borderTopWidth: 1 },
   menuItem: { padding: 10 },
   menuIcon: { width: 30, height: 30 },
 });

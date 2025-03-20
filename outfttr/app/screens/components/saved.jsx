@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useRouter } from "expo-router";
 import {
   View, Text, StyleSheet, Alert, Image, Modal, Pressable, ScrollView
 } from "react-native";
@@ -6,7 +7,9 @@ import { Calendar } from "react-native-calendars";
 import { getSavedOutfits } from "../utility/storage";
 import { ThemeContext } from "../utility/themeContext";
 
+
 const Saved = () => {
+  const router = useRouter();
   const [savedOutfits, setSavedOutfits] = useState([]);
   const [selectedOutfit, setSelectedOutfit] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -53,23 +56,31 @@ const Saved = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background }]}>
-      <Text style={[styles.title, { color: themeColors.text }]}>Saved Outfits Calendar</Text>
+      <Pressable style={styles.backButton} onPress={() => router.back()}>
+        <Image source={require('../assets/back.png')} style={styles.icon} />
+      </Pressable>
 
-      {/* Calendar Component */}
-      <Calendar
-        current={new Date().toISOString().split('T')[0]}
-        markedDates={getMarkedDates()}
-        onDayPress={handleDayPress}
-        theme={{
-          todayTextColor: themeColors.primary,
-          arrowColor: themeColors.primary,
-          textDayFontFamily: "Arial",
-          textMonthFontFamily: "Arial",
-          textDayHeaderFontFamily: "Arial",
-          textMonthFontWeight: "bold",
-          textMonthFontSize: 16,
-        }}
-      />
+      <View style={styles.calContainer}>
+        <Text style={[styles.title, { color: themeColors.text }]}>Saved Outfits Calendar</Text>
+        <Calendar
+          current={new Date().toISOString().split('T')[0]}
+          markedDates={getMarkedDates()}
+          onDayPress={handleDayPress}
+          style={styles.calendar}
+          theme={{
+            todayTextColor: themeColors.primary,
+            arrowColor: themeColors.primary,
+            textDayFontFamily: "Arial",
+            textMonthFontFamily: "Arial",
+            textDayHeaderFontFamily: "Arial",
+            textMonthFontWeight: "bold",
+            textMonthFontSize: 16,
+            textDayHeaderFontSize: 14,
+            textDayFontSize: 16,
+            textDayFontWeight: "bold",
+          }}
+        />
+      </View>
 
       {/* Modal for Showing Outfit */}
       <Modal
@@ -123,6 +134,23 @@ const styles = StyleSheet.create({
   outfitImage: { width: 100, height: 100, borderRadius: 10 },
   closeButton: { marginTop: 20, backgroundColor: "#ff5c5c", paddingVertical: 10, paddingHorizontal: 20, borderRadius: 10 },
   closeButtonText: { color: "#fff", fontWeight: "bold" },
+calContainer: {
+  width: "100%",
+  padding: 15,
+  borderRadius: 12,
+  borderWidth: 2,
+  borderColor: "#d1d1d1",
+  backgroundColor: "#f9f9f9",
+  marginVertical: 20,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+},
+  calendar: { width: "100%" },
+  backButton: { position: "absolute", top: 40, left: 20, zIndex: 10 },
+  icon: { width: 24, height: 24 },
 });
 
 export default Saved;
