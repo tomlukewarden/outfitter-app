@@ -3,7 +3,7 @@ import {
   StyleSheet, Text, Image, View, SafeAreaView, Pressable, ActivityIndicator, Alert 
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useFocusEffect } from "@react-navigation/native"; // ✅ Ensure wardrobe updates on screen focus
+import { useFocusEffect } from "@react-navigation/native"; 
 import Carousel from "./components/cardCarousel";
 import { getWardrobe, saveOutfitToStorage } from "./utility/storage"; 
 import { ThemeContext } from "./utility/themeContext";
@@ -14,7 +14,7 @@ export default function Swipe() {
   
   const [groupedData, setGroupedData] = useState({});
   const [loading, setLoading] = useState(true);
-  const [refresh, setRefresh] = useState(false); // ✅ Added refresh state
+  const [refresh, setRefresh] = useState(false); 
   const [outfit, setOutfit] = useState({
     headwear: null,
     top: null,
@@ -22,7 +22,7 @@ export default function Swipe() {
     shoes: null
   });
 
-  // ✅ Fetch wardrobe items whenever the screen comes into focus or refresh state changes
+
   useFocusEffect(
     useCallback(() => {
       const fetchWardrobe = async () => {
@@ -45,7 +45,7 @@ export default function Swipe() {
       };
 
       fetchWardrobe();
-    }, [refresh]) // ✅ Refresh when wardrobe changes
+    }, [refresh]) 
   );
 
   const handleSelectItem = (type, item) => {
